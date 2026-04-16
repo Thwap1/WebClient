@@ -4,9 +4,9 @@ from extensions import GMCP
 import threading
 import socket
 import asyncio
-from models import Dawae, Rooms
 import logging
-import roominfo
+import mapper
+from extensions import db
 #  flask logging config 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
@@ -121,13 +121,14 @@ async def process_session(sid,reader,writer):
                     elif state == STATE_GMCP_PREV_WAS_IAC:
                        gmcp_buffer.append(b)
                        if b == 0xF0:
-                           if gmcp_buffer.startswith(b'\xc9Party.Info'):
+                            if gmcp_buffer.startswith(b'\xc9Party.Info'):
                                pass #TODO (statuswindow)
-                           elif gmcp_buffer.startswith(b'\xc9Room.Info'):
-                               ui_keys, room, hero = roominfo.parseRoomInfo(gmcp_buffer[11:-2])
-                               pass #TODO (mapper, fastkeys etc)
-                           state = STATE_OUTPUT
-                           gmcp_buffer.clear()
+                            elif gmcp_buffer.startswith(b'\xc9Room.Info'):
+                                with app.app_context():
+                                    ui_keys, room, hero = mapper.parseRoomInfo(gmcp_buffer[11:-2],sid)
+                                    print("ROOMINFO",ui_keys,room,hero)
+                            state = STATE_OUTPUT
+                            gmcp_buffer.clear()
                        elif b ==  0xFF:
                            state = STATE_GMCP_PREV_WAS_IAC 
                        else:
@@ -158,7 +159,12 @@ def index():
 
 if __name__ == '__main__':
     with app.app_context():     
-        socketio.run(app, log_output=False, debug=False, host=HOST, port=int("80"))
+
+        mapper.setup_level(1,"ayth")
+        
+        
+        
+        #socketio.run(app, log_output=False, debug=False, host=HOST, port=int("80"))
 
 
 

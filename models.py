@@ -47,7 +47,6 @@ class Rooms(db.Model):
     def __repr__(self): return f"Rooms({self.lvl}, {self.x}, {self.y}, {self.z}, {self.value})"
 
 class Lines(db.Model):
-    __bind_key__ = 'db'
     id,lvl,x,y,z,x2,y2 = db.Column(db.Integer, primary_key=True),db.Column(db.Integer),db.Column(db.Integer),db.Column(db.Integer),db.Column(db.Integer),db.Column(db.Integer),db.Column(db.Integer)
     def __repr__(self): return f"Lines(lvl:{self.lvl}, x:{self.x}, y:{self.y}, z:{self.z}, x2:{self.x2},y2:{self.x2})"
 
