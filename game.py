@@ -7,6 +7,7 @@ import asyncio
 import logging
 import mapper
 from extensions import db
+from mapper import mazes
 #  flask logging config 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
@@ -19,7 +20,7 @@ socketio = SocketIO(app)
 
 # (GLOBAL OBJECTS)
 mud_connections = {}
-player = {}
+
 
 # constants / network config
 FORMAT = 'UTF-8'
@@ -43,6 +44,10 @@ def handle_connect():
 
 async def send_msg(msg, sid):
     try:
+        if len(msg) == 3 and msg in ['TAL','REC']:
+            socketio.emit('output',{'output':mapper.change_state(msg,sid)},to=sid)
+            return
+
         writer = mud_connections[sid]['writer']
         writer.write((msg+"\n").encode(FORMAT))
         await writer.drain()
@@ -64,7 +69,9 @@ async def mud_session(sid):
 
 async def process_session(sid,reader,writer):
     mud_connections[sid] = {"reader": reader,"writer": writer}
-    
+    with app.app_context():
+        mapper.setup_level(sid,"ayth")
+        socketio.emit('map',{'data':list(mapper.mazes[sid]["dungeon"].values()), 'lines':mapper.mazes[sid]["svg_lines"]},to=sid)
     await GMCP.gmcp_order(writer)
     
     STATE_OUTPUT,STATE_IAC, STATE_IAC_2, STATE_GMCP, STATE_GMCP_PREV_WAS_IAC  = 0,1,2,3,4
@@ -99,7 +106,6 @@ async def process_session(sid,reader,writer):
                 for b in chunk:
                     if state == STATE_OUTPUT:
                         if b == 0xFF:
-                           print("IAC")
                            state = STATE_IAC
                         else:
                            text_buffer.append(b)
@@ -124,9 +130,13 @@ async def process_session(sid,reader,writer):
                             if gmcp_buffer.startswith(b'\xc9Party.Info'):
                                pass #TODO (statuswindow)
                             elif gmcp_buffer.startswith(b'\xc9Room.Info'):
-                                with app.app_context():
-                                    ui_keys, room, hero = mapper.parseRoomInfo(gmcp_buffer[11:-2],sid)
-                                    print("ROOMINFO",ui_keys,room,hero)
+                                
+                                try:
+                                    with app.app_context():
+                                        ui_keys, room, hero, dungeon = mapper.parseRoomInfo(gmcp_buffer[11:-2],sid)
+                                        print("ROOMINFO",ui_keys,room,hero)
+                                except Exception as e:
+                                    print(e)
                             state = STATE_OUTPUT
                             gmcp_buffer.clear()
                        elif b ==  0xFF:
@@ -144,8 +154,11 @@ async def process_session(sid,reader,writer):
             except Exception as e:
                 print("connection error:",e)
         
+        
         data = og_data.decode(FORMAT, errors='ignore')
+        
         output+=data
+
         
     
 
@@ -160,11 +173,11 @@ def index():
 if __name__ == '__main__':
     with app.app_context():     
 
-        mapper.setup_level(1,"ayth")
         
         
         
-        #socketio.run(app, log_output=False, debug=False, host=HOST, port=int("80"))
+        
+        socketio.run(app, log_output=False, debug=False, host=HOST, port=int("80"))
 
 
 

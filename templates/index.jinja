@@ -8,6 +8,61 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
 </head>
 <body>
+    <div id = "map-outer">
+        <div id="map-inner">
+                <svg id="svg_ow" class="hide"  xmlns="http://www.w3.org/2000/svg"></svg>
+                <svg id="svg_map" xmlns="http://www.w3.org/2000/svg"  viewBox="-10 -10 95 95"  z-index="444">
+                    <defs>
+                        <g class="ro" id="0" > <rect x="2" y="2" width="8" height="8" rx="1"/></g>
+                        <g class="ro" id="1" > <rect x="2" y="2" width="8" height="8" rx="1"/><path d="M2.5,4.5 l -5,0, l 0,3, l 5,0 z" pathLength="16" stroke-dasharray="5 3 5 3"/></g>
+                        <g class="ro" id="2" > <rect x="2" y="2" width="8" height="8" rx="1"/><path d="M4.5,2.5 l 0,-5, l 3,0, l 0,5 z" pathLength="16" stroke-dasharray="5 3 5 3"/></g>
+                        <g class="ro" id="3" > <rect x="2" y="2" width="8" height="8" rx="1"/><path d="M2.5,4.5 l -5,0, l 0,3, l 5,0 z" pathLength="16" stroke-dasharray="5 3 5 3"/><path d="M4.5,2.5 l 0,-5, l 3,0, l 0,5 z" pathLength="16" stroke-dasharray="5 3 5 3"/></g>
+                        <g class="ro" id="4" > <rect x="2" y="2" width="8" height="8" rx="1"/><path d="M9.5,4.5 l 5,0, l 0,3, l -5,0 z" pathLength="16" stroke-dasharray="5 3 5 3"/></g>
+                        <g class="ro" id="5" > <rect x="2" y="2" width="8" height="8" rx="1"/><path d="M9.5,4.5 l 5,0, l 0,3, l -5,0 z" pathLength="16" stroke-dasharray="5 3 5 3"/><path d="M2.5,4.5 l -5,0, l 0,3, l 5,0 z" pathLength="16" stroke-dasharray="5 3 5 3"/></g>
+                        <g class="ro" id="6" > <rect x="2" y="2" width="8" height="8" rx="1"/><path d="M9.5,4.5 l 5,0, l 0,3, l -5,0 z" pathLength="16" stroke-dasharray="5 3 5 3"/><path d="M4.5,2.5 l 0,-5, l 3,0, l 0,5 z" pathLength="16" stroke-dasharray="5 3 5 3"/></g>
+                        <g class="ro" id="7" > <rect x="2" y="2" width="8" height="8" rx="1"/><path d="M9.5,4.5 l 5,0, l 0,3, l -5,0 z" pathLength="16" stroke-dasharray="5 3 5 3"/><path d="M4.5,2.5 l 0,-5, l 3,0, l 0,5 z" pathLength="16" stroke-dasharray="5 3 5 3"/><path d="M2.5,4.5 l -5,0, l 0,3, l 5,0 z" pathLength="16" stroke-dasharray="5 3 5 3"/></g>
+                        <g class="ro" id="8" > <rect x="2" y="2" width="8" height="8" rx="1"/><path d="M4.5,9.5 l 0,5, l 3,0, l 0,-5 z" pathLength="16" stroke-dasharray="5 3 5 3"/></g>
+                        <g class="ro" id="9" > <rect x="2" y="2" width="8" height="8" rx="1"/><path d="M4.5,9.5 l 0,5, l 3,0, l 0,-5 z" pathLength="16" stroke-dasharray="5 3 5 3"/><path d="M2.5,4.5 l -5,0, l 0,3, l 5,0 z" pathLength="16" stroke-dasharray="5 3 5 3"/></g>
+                        <g class="ro" id="10" ><rect x="2" y="2" width="8" height="8" rx="1"/><path d="M4.5,9.5 l 0,5, l 3,0, l 0,-5 z" pathLength="16" stroke-dasharray="5 3 5 3"/><path d="M4.5,2.5 l 0,-5, l 3,0, l 0,5 z" pathLength="16" stroke-dasharray="5 3 5 3"/></g>
+                        <g class="ro" id="11" ><rect x="2" y="2" width="8" height="8" rx="1"/><path d="M2.5,4.5 l -5,0, l 0,3, l 5,0 z" pathLength="16" stroke-dasharray="5 3 5 3"/><path d="M4.5,2.5 l 0,-5, l 3,0, l 0,5 z" pathLength="16" stroke-dasharray="5 3 5 3"/><path d="M4.5,9.5 l 0,5, l 3,0, l 0,-5 z" pathLength="16" stroke-dasharray="5 3 5 3"/></g>
+                        <g class="ro" id="12" ><rect x="2" y="2" width="8" height="8" rx="1"/><path d="M4.5,9.5 l 0,5, l 3,0, l 0,-5 z" pathLength="16" stroke-dasharray="5 3 5 3"/><path d="M9.5,4.5 l 5,0, l 0,3, l -5,0 z" pathLength="16" stroke-dasharray="5 3 5 3"/></g>
+                        <g class="ro" id="13" ><rect x="2" y="2" width="8" height="8" rx="1"/><path d="M9.5,4.5 l 5,0, l 0,3, l -5,0 z" pathLength="16" stroke-dasharray="5 3 5 3"/><path d="M2.5,4.5 l -5,0, l 0,3, l 5,0 z" pathLength="16" stroke-dasharray="5 3 5 3"/><path d="M4.5,9.5 l 0,5, l 3,0, l 0,-5 z" pathLength="16" stroke-dasharray="5 3 5 3"/></g>
+                        <g class="ro" id="14" ><rect x="2" y="2" width="8" height="8" rx="1"/><path d="M9.5,4.5 l 5,0, l 0,3, l -5,0 z" pathLength="16" stroke-dasharray="5 3 5 3"/><path d="M4.5,2.5 l 0,-5, l 3,0, l 0,5 z" pathLength="16" stroke-dasharray="5 3 5 3"/><path d="M4.5,9.5 l 0,5, l 3,0, l 0,-5 z" pathLength="16" stroke-dasharray="5 3 5 3"/></g>
+                        <g class="ro" id="15" ><rect x="2" y="2" width="8" height="8" rx="1"/><path d="M9.5,4.5 l 5,0, l 0,3, l -5,0 z" pathLength="16" stroke-dasharray="5 3 5 3"/><path d="M4.5,2.5 l 0,-5, l 3,0, l 0,5 z" pathLength="16" stroke-dasharray="5 3 5 3"/><path d="M4.5,9.5 l 0,5, l 3,0, l 0,-5 z" pathLength="16" stroke-dasharray="5 3 5 3"/><path d="M2.5,4.5 l -5,0, l 0,3, l 5,0 z" pathLength="16" stroke-dasharray="5 3 5 3"/></g>
+                        <g class="ro" id="d1"  ><path d="M8,10  l7,7 l2,-2 l-7,-7 Z" pathLength="18" stroke-dasharray="7 2 7 2"/></g>
+                        <g class="ro" id="d2"  ><path d="M2,8  l-7,7 l2,2 l7,-7 Z"   pathLength="18" stroke-dasharray="7 2 7 2"/></g>
+                        <g class="ro" id="d3"  ><path d="M8,10  l7,7 l2,-2 l-7,-7 Z" pathLength="18" stroke-dasharray="7 2 7 2"/><path d="M2,8  l-7,7 l2,2 l7,-7 Z"   pathLength="18" stroke-dasharray="7 2 7 2"/></g>
+                        <g class="ro" id="d4"  ><path d="M4,2  l-7,-7 l-2,2 l7,7 Z"  pathLength="18" stroke-dasharray="7 2 7 2"/></g>
+                        <g class="ro" id="d5"  ><path d="M4,2  l-7,-7 l-2,2 l7,7 Z"  pathLength="18" stroke-dasharray="7 2 7 2"/><path d="M8,10  l7,7 l2,-2 l-7,-7 Z" pathLength="18" stroke-dasharray="7 2 7 2"/></g>
+                        <g class="ro" id="d6"  ><path d="M4,2  l-7,-7 l-2,2 l7,7 Z"  pathLength="18" stroke-dasharray="7 2 7 2"/><path d="M2,8  l-7,7 l2,2 l7,-7 Z"   pathLength="18" stroke-dasharray="7 2 7 2"/></g>
+                        <g class="ro" id="d7"  ><path d="M4,2  l-7,-7 l-2,2 l7,7 Z"  pathLength="18" stroke-dasharray="7 2 7 2"/><path d="M8,10  l7,7 l2,-2 l-7,-7 Z" pathLength="18" stroke-dasharray="7 2 7 2"/><path d="M2,8  l-7,7 l2,2 l7,-7 Z"   pathLength="18" stroke-dasharray="7 2 7 2"/></g>
+                        <g class="ro" id="d8"  ><path d="M8,2  l7,-7 l2,2 l-7,7 Z"   pathLength="18" stroke-dasharray="7 2 7 2"/></g>
+                        <g class="ro" id="d9"  ><path d="M8,2  l7,-7 l2,2 l-7,7 Z"   pathLength="18" stroke-dasharray="7 2 7 2"/><path d="M8,10  l7,7 l2,-2 l-7,-7 Z" pathLength="18" stroke-dasharray="7 2 7 2"/></g>
+                        <g class="ro" id="d10" ><path d="M8,2  l7,-7 l2,2 l-7,7 Z"   pathLength="18" stroke-dasharray="7 2 7 2"/><path d="M2,8  l-7,7 l2,2 l7,-7 Z"   pathLength="18" stroke-dasharray="7 2 7 2"/></g>
+                        <g class="ro" id="d11" ><path d="M8,2  l7-7 l2,2 l-7,7 Z"   pathLength="18" stroke-dasharray="7 2 7 2"/><path d="M8,10  l7,7 l2,-2 l-7,-7 Z" pathLength="18" stroke-dasharray="7 2 7 2"/><path d="M2,8  l-7,7 l2,2 l7,-7 Z"   pathLength="18" stroke-dasharray="7 2 7 2"/></g>
+                        <g class="ro" id="d12" ><path d="M8,2  l7-7 l2,2 l-7,7 Z"   pathLength="18" stroke-dasharray="7 2 7 2"/><path d="M4,2  l-7,-7 l-2,2 l7,7 Z"  pathLength="18" stroke-dasharray="7 2 7 2"/></g>
+                        <g class="ro" id="d13" ><path d="M8,2  l7-7 l2,2 l-7,7 Z"   pathLength="18" stroke-dasharray="7 2 7 2"/><path d="M4,2  l-7,-7 l-2,2 l7,7 Z"  pathLength="18" stroke-dasharray="7 2 7 2"/><path d="M8,10  l7,7 l2,-2 l-7,-7 Z" pathLength="18" stroke-dasharray="7 2 7 2"/></g>
+                        <g class="ro" id="d14" ><path d="M8,2  l7-7 l2,2 l-7,7 Z"   pathLength="18" stroke-dasharray="7 2 7 2"/><path d="M4,2  l-7,-7 l-2,2 l7,7 Z"  pathLength="18" stroke-dasharray="7 2 7 2"/><path d="M2,8  l-7,7 l2,2 l7,-7 Z"   pathLength="18" stroke-dasharray="7 2 7 2"/></g>
+                        <g class="ro" id="d15" ><path d="M8,2  l7-7 l2,2 l-7,7 Z"   pathLength="18" stroke-dasharray="7 2 7 2"/><path d="M4,2  l-7,-7 l-2,2 l7,7 Z"  pathLength="18" stroke-dasharray="7 2 7 2"/><path d="M8,10  l7,7 l2,-2 l-7,-7 Z" pathLength="18" stroke-dasharray="7 2 7 2"/><path d="M2,8  l-7,7 l2,2 l7,-7 Z"   pathLength="18" stroke-dasharray="7 2 7 2"/></g>
+                        <g id="256" fill="#834593" ><polygon points="2.5 2.5 9.5 2.5 2.5 9.5 2.5 2.5"/></g>
+                        <g id="512" fill="#72773b" ><polygon points="9.5 9.5 2.5 9.5 9.5 2.5 9.5 9.5"/></g>
+                    </defs>
+                </svg>
+                <svg id="svg_hero" xmlns="http://www.w3.org/2000/svg"  viewBox="-10 -10 95 95"  z-index="555">
+                    <defs>
+                        <g id='hero' fill="#3333AA44" stroke-width="2" stroke="#456193"><rect  rx="2" ry="2 "x="0" y="0" width="12" height="12"/></g>
+                    </defs>
+                <use id="dude" class="hide" transform-origin="6px 6px" xlink:href="#hero"  x="0" y="0">
+                </svg>
+            <div class="map-resize-handle"></div> 
+        </div>
+    </div>
+    
+    
+    <div id="levels">
+        <div class="dot" id="dot90" onmouseup="change_level(event)"></div>
+        <div class="hide dot" id="dot8"></div><div class="hide dot" id="dot7"></div><div class="hide dot" id="dot6"></div><div class="hide dot" id="dot5"></div><div class="hide dot" id="dot4"></div><div class="hide dot" id="dot3"></div><div class="hide dot" id="dot2"></div><div class="hide dot" id="dot1"></div><div class="hide dot" id="dot0"></div><div class="hide dot" id="dot-1"></div><div class="hide dot" id="dot-2"></div><div class="hide dot" id="dot-3"></div><div class="hide dot" id="dot-4"></div><div class="hide dot" id="dot-5"></div><div class="hide dot" id="dot-6"></div><div class="hide dot" id="dot-7"></div><div class="hide dot" id="dot-8"></div><div class="hide dot" id="dot-9"></div><div class="hide dot" id="dot-10"></div><div class="hide dot" id="dot-11"></div>
+    </div>
     <div class="hud-stack">
         <div id=output></div>
         <div id="room-data"></div>
@@ -177,5 +232,202 @@
     });
 </script>
 
+<script> //map
+    const container = document.getElementById("map-inner");
+    const map_resize_handle = document.querySelector('.map-resize-handle');
+    const svg_map = document.getElementById('svg_map');
+    const svg_ow = document.getElementById('svg_ow');
+    const svg_hero = document.getElementById('svg_hero');
+    let mapHandleisDragging = false;
+    var xlinkns = "http://www.w3.org/1999/xlink";
+    var svgns = "http://www.w3.org/2000/svg";
+    var levels = [];
+    var current_lvl = document.getElementById("dot90");
+    var min_y =-1;
+    var min_x =-1;
+    var max_y = 1;
+    var max_x = 1;
+    var hero_lvl = 0;
+    var dude = document.getElementById('dude');
+
+
+    map_resize_handle.addEventListener('mousedown', () => {
+        isDragging2 = true;
+    });
+
+    document.addEventListener('mouseup', () => {
+        mapHandleisDragging = false;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (mapHandleisDragging) 
+        {
+            const rect = container.getBoundingClientRect();
+            const newSize = rect.right - e.clientX;
+            container.style.width = newSize + 'px';
+            scaleviewbox()
+        }
+    });
+
+
+    function scaleviewbox()
+    {
+        const viewBoxX = (min_x - 1) << 4;
+        const viewBoxY = (min_y - 1) << 4;
+        const viewBoxWidth = (max_x - min_x + 3) << 4;
+        const viewBoxHeight = (max_y - min_y + 3) << 4;
+        svg_map.setAttribute("viewBox", `${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`);
+        svg_hero.setAttribute("viewBox", `${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`);
+        const aspectRatio = viewBoxWidth / viewBoxHeight;
+        const mapInner = document.getElementById("map-inner");
+        const width = mapInner.offsetWidth;
+        mapInner.style.height = `${width / aspectRatio}px`;
+    }
+
+
+
+
+
+
+
+    function change_level(evt)
+    {    
+        document.querySelectorAll('.clone').forEach(element => element.remove());
+        current_lvl.classList.remove("dot2");
+        evt.target.classList.add("dot2");
+        current_lvl=evt.target;
+        level_check(evt.target.id.substring(3)) ;
+    }
+
+// checking if need to change level and after that scale things, and hid and show other levels.
+    function level_check(level)
+    {   
+        
+        svg_ow.classList.toggle("hide",level!=90)
+        svg_map.classList.toggle("hide",level==90)
+        svg_hero.classList.remove("hide")   
+        dude.classList.toggle("hide",(level!=hero_lvl || level == 90));       
+        for (i = 0; i < levels.length; i++)
+        {
+            levels[i].classList.toggle("hide",(levels[i].id!="z"+level));
+            if (levels[i].id=="z"+level)
+            {
+                min_x = levels[i].getAttribute("minx");
+                max_x = levels[i].getAttribute("maxx");
+                min_y = levels[i].getAttribute("miny");
+                max_y = levels[i].getAttribute("maxy");
+                scaleviewbox()
+            }
+        }          
+    }
+
+// drawving the svg room
+    function room(x,y,z,room_type,fog=false)
+    {
+        var svg = svg_map.getElementById("z"+z)
+        if(svg == null )
+        {
+            divi = document.getElementById("dot"+z);
+            if(!divi)
+            {
+                console.log("OOPS lvl "+z+" does not exist");
+                return;
+            }
+            divi.classList.remove("hide");
+            divi.classList.add("dot");
+    	    divi.addEventListener('mouseup', change_level);
+    	    svg = document.createElementNS(svgns, "g");
+    	    svg.setAttribute("id","z"+z);
+    	    svg.classList.add("hide");
+            svg.setAttribute("minx",x);svg.setAttribute("maxx",x);svg.setAttribute("miny",y);svg.setAttribute("maxy",y);	
+    	    svg_map.appendChild(svg);
+    	    levels.push(svg);
+      
+
+      
+		} 
+        else {
+            svg.setAttribute("minx",Math.min(parseInt(svg.getAttribute ("minx")),x));
+            svg.setAttribute("maxx",Math.max(parseInt(svg.getAttribute ("maxx")),x));
+            svg.setAttribute("miny",Math.min(parseInt(svg.getAttribute ("miny")),y));
+            svg.setAttribute("maxy",Math.max(parseInt(svg.getAttribute ("maxy")),y))	
+        }
+        max_x = Math.max(x,max_x);min_x = Math.min(x,min_x);max_y = Math.max(y,max_y);min_y = Math.min(y,min_y);         
+
+        
+        let g = document.getElementById("R"+x+":"+y+":"+z);
+        if (g) 
+        {
+            g = g.parentNode
+            let c = g.childNodes;
+            for (let i = c.length - 1; i >= 0; i--) 
+            {
+                //TODO if there is gotta keep link to it.
+                g.removeChild(c[i]);        
+            }
+        } else
+        {
+            g = document.createElementNS(svgns, "g");
+			svg.appendChild(g);   
+        }
+        var room_base = document.createElementNS(svgns, "use");	    
+		room_base.setAttributeNS(null,"y",y << 4)
+        room_base.setAttributeNS(null,"x",x << 4)
+        room_base.setAttributeNS(null,"id",`R${x}:${y}:${z}`);        
+        room_base.setAttributeNS(xlinkns, "href", "#"+(room_type % 16));
+		room_base.classList.add("room")
+        g.appendChild(room_base);
+        if (room_type & 31457280)
+        {
+    	    var room_diagonals = document.createElementNS(svgns, "use");	
+    	    room_diagonals.setAttribute("y" , y << 4);
+    	    room_diagonals.setAttribute("x" , x << 4);
+            room_diagonals.setAttributeNS(xlinkns, "href", "#d"+((room_type >> 21) & 15));   
+            room_diagonals.classList.add("room");
+            room_diagonals.setAttributeNS(null,"id",`R${x}:${y}:${z}:2`);
+    	    g.appendChild(room_diagonals);
+        }  
+		if(room_type & 256)
+        {			
+    			var staircase_up = document.createElementNS(svgns, "use");	
+    			staircase_up.setAttribute("y",y<<4);staircase_up.setAttribute("x",x<<4);
+    			staircase_up.setAttributeNS(xlinkns, "href", "#256");
+    			g.appendChild(staircase_up);
+		}
+		if(room_type & 512)
+        {
+    			var staircase_down = document.createElementNS(svgns, "use");	
+    			staircase_down.setAttribute("y",y<<4);staircase_down.setAttribute("x",x<<4);
+    			staircase_down.setAttributeNS(xlinkns, "href", "#512");
+    			g.appendChild(staircase_down);
+		}
+        if (fog)
+        {        
+            g.classList.add("fog")
+        }
+    }
+
+
+    socket.on('map', (msg) => {
+        
+        levels.forEach(el => el.remove());
+            for (let i = 8; i >= -11; i--) {
+            const el = document.getElementById(`dot${i}`);
+            if (el) el.classList.add("hide");
+        }
+
+
+        const data = msg.data;
+
+        for (const item of data) {
+            room(item.x, item.y, item.z, item.v, true);
+        }
+        const l = msg.lines;
+        for (const item of l) {
+            draw_line(item.x, item.y, item.z, item.x2,item.y2);
+        }
+    });
+
+</script>
 </body>
 </html>

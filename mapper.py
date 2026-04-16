@@ -22,7 +22,18 @@ dict_dirs = {'west' : 1, 'north': 2, 'east': 4, 'south': 8, 'down': 512, 'up': 2
           'leave,': 1024,'w' : 1, 'n': 2, 'e': 4, 's': 8, 'd': 512, 'u': 256, 'leave': 1024,
           'w,' : 1, 'n,': 2, 'e,': 4, 's,': 8, 'd,': 512, 'u,': 256,  'upstairs,': 256, 'leave,': 1024}
 
+default_planet = "aegi"
 
+def change_state(msg,sid):
+    if not sid in mazes:
+        mazes[sid] = {"room_queue":queue.Queue(),"mapper_state":None, "planet": default_planet }
+        
+    maze = mazes[sid]
+    with maze["room_queue"].mutex:maze["room_queue"].queue.clear()
+    maze["mapper_state"] = msg if maze["mapper_state"] == None else None
+    if not maze["mapper_state"]:
+        return f">> MAPPER OFF >>\n"
+    return f">> MAPPER MODE: \033[{36}mTAL\033[0m >>\n" if msg == "TAL" else f">> MAPPER MODE: \033[{31}mREC\033[0m >>\n"
 
 def popRoom(maze):
     try:
@@ -34,48 +45,49 @@ def popRoom(maze):
 
 def parseRoomInfo(data,sid):
     try:
+        
         global maze
-        roomdata = orjson.loads(data[11:-2])
+        roomdata = orjson.loads(data)
         if not "id" in roomdata:
-            return (False,False,False)
-
+            return (False,False,False,False)
+        
         ui_keys= []
         id = int(roomdata["id"],16)
-
+        
         # ---- keybindings from location to UI ---
         for dict in keybinds.override_dicts:
             if id in keybinds.override_dicts[dict]:
                 ui_keys.append(f"{dict} {keybinds.override_dicts[dict][id][0]}")
 
         if sid not in mazes or not mazes[sid]["mapper_state"]:
-            return (ui_keys,False,False)
-
+            return (ui_keys,False,False,False)
+        
         maze = mazes[sid]
         # ---- actual locations in map ---
         # z = 90 ow and not inside area.
         hero = False
-
+        dungeon = False
         if id in mazeslib.bases:
             maze['z'] = 90
             popRoom(maze)
-            if maze['level_id'] != mazeslib.bases[id]["id"]:
+            if 'level_id' not in maze or maze['level_id'] != mazeslib.bases[id]["id"]:
                 setup_level(sid,maze["planet"],id)
                 hero = {"x": maze["x"],"y": maze["y"],"z": 90}
+                dungeon = True
         elif id in maze["dungeon"]:
             maze["x"] = maze["dungeon"][id]["x"]
             maze["y"] = maze["dungeon"][id]["y"]
             maze["z"] = maze["dungeon"][id]["z"]
             popRoom(maze)
         if maze["mapper_state"] != "REC":
-            return (ui_keys,False,hero)
-
+            return (ui_keys,False,hero,dungeon)
         # ---- generating new rooms to map ---    
         command,dirs = popRoom(maze) #command is 
         if maze["prev_id"] in mazeslib.bases:
             if command == mazeslib.bases[maze["prev_id"]]['in_cmd']:
                 maze["x"], maze["y"], maze["z"] = 0, 0 ,0
         if maze['z'] == 90:
-            return(ui_keys,False,False)
+            return(ui_keys,False,False,dungeon)
         for i in dirs:
             if i in dictx:
                 maze["x"] += dictx[i]
@@ -93,10 +105,14 @@ def parseRoomInfo(data,sid):
         new_room =  Rooms(id = id, lvl = maze["level_id"], x=maze["x"], y=maze["y"], z=maze["z"], value=room_value)
         db.session.merge(new_room)
         db.session.commit()
+        hero = {"x": maze["x"],"y": maze["y"],"z": maze["z"]}
         room = {"x":maze["x"],"y":maze["y"],"z":maze["z"],"v":room_value}
         maze["dungeon"][id] = room
-        hero = {"x": maze["x"],"y": maze["y"],"z": maze["z"]}
-        return (ui_keys,room,hero)
+        maze["prev_id"] = id
+        
+        return(ui_keys,hero,room,dungeon)
+        
+        
     except Exception as e:
         print("room parsing error", e)
 
@@ -104,7 +120,7 @@ def setup_level(sid, new_planet, new_id = -1):
     try:
         global mazes
         if not sid in mazes:
-            mazes[sid] = {"room_queue":queue.Queue()}
+            mazes[sid] = {"room_queue":queue.Queue(),"mapper_state":None, "planet": default_planet }
         maze = mazes[sid]
         maze['dae_level'] = 0
         maze['dae_default'] = 0
@@ -145,6 +161,7 @@ def setup_level(sid, new_planet, new_id = -1):
                     maze["da_wae"][daw.id] = [(daw.da_nro,daw.da_wae)]
                 else:
                     maze["da_wae"][daw.id].append((daw.da_nro,daw.da_wae))
+
     except Exception as error:
         print(f'setup error:{error}')
         print("Error type:", type(error)) 

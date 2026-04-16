@@ -80,3 +80,94 @@ body {
     border-color: #4f4f50;
     box-shadow: 0 0 2px 1px rgba(97, 97, 192, 0.9), 0 0 3px 1px rgba(255, 255, 170, 0.5);
 }
+
+
+
+.room rect {
+    stroke-width:1;
+    rx:"2";
+    z-index:55;
+}
+.room {
+    fill:#555;
+    stroke:#000;
+    stroke-width:0.8;
+}
+.room path {
+    fill:#555;
+    stroke:#000;
+    stroke-width:0.8;
+    opacity: 1;
+}
+.map-line {
+    stroke:#000;
+    stroke-width:3.6;
+}
+.map-line2 {
+    stroke:#555;
+    stroke-width:2;
+} 
+
+.map-resize-handle {
+    z-index: 9999;
+    position: relative;
+    bottom: 0;
+    left: 0;
+    height: 100%;
+    width: 10px;
+    cursor: ew-resize;
+    background: #555;
+    opacity: 0;                   
+    transition: opacity 0.2s ease;  
+}
+
+.resize-handle:hover {
+    opacity: 1;
+}
+
+#map-outer {
+    position: fixed;
+    width: 100%;
+}
+
+#map-inner {
+    position: absolute; 
+    width: 400px;
+    aspect-ratio: 1 / 1;
+    margin: 0; 
+    right: 1px;      
+}
+
+.hide {
+    display: none !important;
+    visibility: hidden !important;
+}
+.dis, #hero_svg {
+    pointer-events: none;
+}
+
+#svg_ow, #svg_map, #svg_hero {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    max-height: 100%;
+    display: block;
+}
+#svg_map{
+    border-radius: 6px;
+    background-color: #1e1e1ecc;
+}
+#svg_hero {
+    background-color:transparent;
+    
+}
+#svg_ow {
+  background-size: 100% 100%; /* stretch to fill width & height */
+  background-position: center; /* center image */
+  background-repeat: no-repeat; /* avoid tiling */
+ }
+ .dot {display:inline-block;background-color:#EEE;width:10px;height:10px;margin:0px 3px 0px 3px;border-radius:15px;border: 1px solid #aaa;border-bottom: 1px solid #555;border-right: 1px solid #888;}
+.dot2{background-color:#5043c5;}
+#levels {z-index:10;position:absolute;top:20px;max-width:100vw;max-height:90vh;}
+#levels {height:27px;width:90vw;text-align:center;top:0px;}
