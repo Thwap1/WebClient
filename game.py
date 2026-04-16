@@ -1,10 +1,10 @@
-
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
-from extensions import db
+from extensions import db,GMCP
 import threading
 import socket
 import queue
+import json
 import asyncio
 from models import Dawae, Rooms
 import logging
@@ -38,7 +38,7 @@ def start_mud_loop():
     mud_loop.run_forever()
 threading.Thread(target=start_mud_loop, daemon=True).start()
 
-
+# --- browser connects.
 @socketio.on('connect')
 def handle_connect():
     sid = request.sid
@@ -47,7 +47,9 @@ def handle_connect():
         mud_session(sid),
         mud_loop
     )
-    
+
+
+
 async def mud_session(sid):
     reader, writer = await asyncio.open_connection(ICEHOST, ICEPORT)
     await process_session(sid, reader, writer)
@@ -55,12 +57,14 @@ async def mud_session(sid):
 async def process_session(sid,reader,writer):
     mud_connections[sid] = {"reader": reader,"writer": writer}
     
+    await GMCP.gmcp_order(writer)
+    
     while True:
         
         chunk = await asyncio.wait_for(reader.read(2048), timeout=0.25)
         if not chunk:
             raise asyncio.CancelledError     
-        print(chunk)
+    #    print(chunk)
 
 @app.route("/")
 def index():
