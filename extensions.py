@@ -13,7 +13,8 @@ class GMCP:
     
     @staticmethod
     async def gmcp_order(writer):
-        writer.write(GMCP.IAC + GMCP.DO + GMCP.GMCP) #for some reason icesus did not negotiate with WILL but do.
+        # Request GMCP support (this MUD enables GMCP when it receives DO GMCP)
+        writer.write(GMCP.IAC + GMCP.DO + GMCP.GMCP) 
         await writer.drain()
 
         modules = [
@@ -21,6 +22,7 @@ class GMCP:
             "Party 1",
             "Party.Info 1"
         ]
+         # Tell the server which GMCP modules want to receive
         writer.write(
             GMCP.IAC + GMCP.SB + GMCP.GMCP +
             b"Core.Supports.Set " +

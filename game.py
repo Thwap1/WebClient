@@ -1,14 +1,12 @@
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
-from extensions import db,GMCP
+from extensions import GMCP
 import threading
 import socket
-import queue
-import json
 import asyncio
 from models import Dawae, Rooms
 import logging
-import re
+import roominfo
 #  flask logging config 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
@@ -91,7 +89,7 @@ async def process_session(sid,reader,writer):
                     #outerloop will handle data and prevent too much nesting.
                     break 
                 if output:
-                    
+                    #should put everyting here at once.
                     socketio.emit('output',{'output':output},to=sid)
                 output = ""
                 chunk = await asyncio.wait_for(reader.read(2048), timeout=0.25)
@@ -123,11 +121,11 @@ async def process_session(sid,reader,writer):
                     elif state == STATE_GMCP_PREV_WAS_IAC:
                        gmcp_buffer.append(b)
                        if b == 0xF0:
-                           print("GMCP")
                            if gmcp_buffer.startswith(b'\xc9Party.Info'):
-                               print("PARTYSTATUS")
+                               pass #TODO (statuswindow)
                            elif gmcp_buffer.startswith(b'\xc9Room.Info'):
-                               print("ROOMINFO")
+                               ui_keys, room, hero = roominfo.parseRoomInfo(gmcp_buffer[11:-2])
+                               pass #TODO (mapper, fastkeys etc)
                            state = STATE_OUTPUT
                            gmcp_buffer.clear()
                        elif b ==  0xFF:
@@ -146,8 +144,6 @@ async def process_session(sid,reader,writer):
                 print("connection error:",e)
         
         data = og_data.decode(FORMAT, errors='ignore')
-        #remove unprintables, but leave tab and space.
-        
         output+=data
         
     
