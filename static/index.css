@@ -108,7 +108,7 @@ body {
     stroke-width:2;
 } 
 
-.map-resize-handle {
+#map-resize-handle {
     z-index: 9999;
     position: relative;
     bottom: 0;
@@ -121,7 +121,7 @@ body {
     transition: opacity 0.2s ease;  
 }
 
-.resize-handle:hover {
+#map-resize-handle:hover {
     opacity: 1;
 }
 

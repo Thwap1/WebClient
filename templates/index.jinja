@@ -54,7 +54,7 @@
                     </defs>
                 <use id="dude" class="hide" transform-origin="6px 6px" xlink:href="#hero"  x="0" y="0">
                 </svg>
-            <div class="map-resize-handle"></div> 
+            <div id="map-resize-handle"></div> 
         </div>
     </div>
     
@@ -233,14 +233,15 @@
 </script>
 
 <script> //map
+    const xlinkns = "http://www.w3.org/1999/xlink";
+    const svgns = "http://www.w3.org/2000/svg";
     const container = document.getElementById("map-inner");
-    const map_resize_handle = document.querySelector('.map-resize-handle');
+    const map_resize_handle = document.getElementById('map-resize-handle');
     const svg_map = document.getElementById('svg_map');
     const svg_ow = document.getElementById('svg_ow');
     const svg_hero = document.getElementById('svg_hero');
+    const dude = document.getElementById('dude');
     let mapHandleisDragging = false;
-    var xlinkns = "http://www.w3.org/1999/xlink";
-    var svgns = "http://www.w3.org/2000/svg";
     var levels = [];
     var current_lvl = document.getElementById("dot90");
     var min_y =-1;
@@ -248,11 +249,10 @@
     var max_y = 1;
     var max_x = 1;
     var hero_lvl = 0;
-    var dude = document.getElementById('dude');
 
 
     map_resize_handle.addEventListener('mousedown', () => {
-        isDragging2 = true;
+        mapHandleisDragging = true;
     });
 
     document.addEventListener('mouseup', () => {
@@ -269,7 +269,7 @@
         }
     });
 
-
+// Scale the map to fill the entire area.
     function scaleviewbox()
     {
         const viewBoxX = (min_x - 1) << 4;
@@ -296,13 +296,12 @@
         current_lvl.classList.remove("dot2");
         evt.target.classList.add("dot2");
         current_lvl=evt.target;
-        level_check(evt.target.id.substring(3)) ;
+        recalculate_visible_layers(evt.target.id.substring(3)) ;
     }
 
-// checking if need to change level and after that scale things, and hid and show other levels.
-    function level_check(level)
-    {   
-        
+// Checking whether to change level, then scaling elements and hiding/showing other levels.
+    function recalculate_visible_layers(level)
+    {     
         svg_ow.classList.toggle("hide",level!=90)
         svg_map.classList.toggle("hide",level==90)
         svg_hero.classList.remove("hide")   
@@ -321,7 +320,7 @@
         }          
     }
 
-// drawving the svg room
+// Drawing the SVG room
     function room(x,y,z,room_type,fog=false)
     {
         var svg = svg_map.getElementById("z"+z)
@@ -407,16 +406,13 @@
         }
     }
 
-
-    socket.on('map', (msg) => {
-        
+//  server provides updated data; client now clears old map and renders new.
+    socket.on('map', (msg) => {      
         levels.forEach(el => el.remove());
             for (let i = 8; i >= -11; i--) {
             const el = document.getElementById(`dot${i}`);
             if (el) el.classList.add("hide");
         }
-
-
         const data = msg.data;
 
         for (const item of data) {
@@ -427,7 +423,40 @@
             draw_line(item.x, item.y, item.z, item.x2,item.y2);
         }
     });
-
+// Two extended lines on the map: black below rooms, grey above.
+    function draw_line(x,y,z,x2,y2)
+    { 
+            
+            elem = svg_map.getElementById(`R${x}:${y}:${z}`)
+            elem2 = svg_map.getElementById(`R${x2}:${y2}:${z}`)
+            if(elem == null || elem2 == null ){
+                return
+            } 
+            parent1 = elem.parentNode
+            parent2 = elem2.parentNode
+            const path = document.createElementNS(svgns, "path");
+            const path2 = document.createElementNS(svgns, "path");
+            const startX =  (x << 4)+6;
+            const startY =  (y << 4)+6;
+            const endX = (x2 << 4)+6;
+            const endY = (y2 << 4)+6;
+            const midX = startX + (endX - startX) / 2;
+            const midY = startY + (endY - startY) / 2;
+            const dValue = "M" + startX + "," + startY + " L" + midX + "," + midY;
+            const dValue2 = "M" + endX + "," + endY + " L" + midX + "," + midY;
+            path.setAttribute("d", dValue);
+            path3 = path.cloneNode(true);
+            path.classList.add("map-line");
+            path3.classList.add("map-line2");
+            path2.setAttribute("d", dValue2);
+            path4 = path2.cloneNode(true);
+            path2.classList.add("map-line");
+            path4.classList.add("map-line2");
+            parent1.insertBefore(path, parent1.firstChild);
+            parent1.insertBefore(path3,elem.nextSibling)
+            parent2.insertBefore(path2, parent2.firstChild);
+            parent2.insertBefore(path4,elem2.nextSibling)
+        } 
 </script>
 </body>
 </html>

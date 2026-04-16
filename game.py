@@ -70,7 +70,7 @@ async def mud_session(sid):
 async def process_session(sid,reader,writer):
     mud_connections[sid] = {"reader": reader,"writer": writer}
     with app.app_context():
-        mapper.setup_level(sid,"ayth")
+        mapper.setup_level(sid,"aegi")
         socketio.emit('map',{'data':list(mapper.mazes[sid]["dungeon"].values()), 'lines':mapper.mazes[sid]["svg_lines"]},to=sid)
     await GMCP.gmcp_order(writer)
     
@@ -134,7 +134,9 @@ async def process_session(sid,reader,writer):
                                 try:
                                     with app.app_context():
                                         ui_keys, room, hero, dungeon = mapper.parseRoomInfo(gmcp_buffer[11:-2],sid)
-                                        print("ROOMINFO",ui_keys,room,hero)
+                                        if dungeon:
+                                            socketio.emit('map', {'data':list(mapper.mazes[sid]["dungeon"].values()), 'lines':mapper.mazes[sid]["svg_lines"]},to=sid)
+                                        
                                 except Exception as e:
                                     print(e)
                             state = STATE_OUTPUT
