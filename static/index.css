@@ -163,11 +163,56 @@ body {
     
 }
 #svg_ow {
-  background-size: 100% 100%; /* stretch to fill width & height */
-  background-position: center; /* center image */
-  background-repeat: no-repeat; /* avoid tiling */
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
  }
- .dot {display:inline-block;background-color:#EEE;width:10px;height:10px;margin:0px 3px 0px 3px;border-radius:15px;border: 1px solid #aaa;border-bottom: 1px solid #555;border-right: 1px solid #888;}
-.dot2{background-color:#5043c5;}
-#levels {z-index:10;position:absolute;top:20px;max-width:100vw;max-height:90vh;}
-#levels {height:27px;width:90vw;text-align:center;top:0px;}
+
+.dot {
+    display:inline-block;
+    background-color:#EEE;
+    width:10px;
+    height:10px;
+    margin:0px 3px 0px 3px;
+    border-radius:15px;
+    border: 1px solid #aaa;
+    border-bottom: 1px solid #555;
+    border-right: 1px solid #888;
+}
+.dot2 {
+    background-color:#5043c5;
+}
+#levels {
+    z-index:10;
+    position:
+    absolute;
+    top:20px;
+    max-width:100vw;
+    max-height:90vh;
+}
+#levels {
+    height:27px;
+    width:90vw;
+    text-align:center;
+    top:0px;
+}
+
+
+.fog > .room {
+    fill:#222;
+    stroke:#333;
+    stroke-width:1;
+}
+.fog > path {
+    fill:#222;
+    stroke:#333;
+    stroke-width:0.8;
+}
+.fog > .map-line{
+    stroke:#333;
+    stroke-width:3.6;
+}
+.fog > .map-line2 {
+    stroke:#222;
+    stroke-width:2;
+} 
