@@ -1,0 +1,18 @@
+SQLALCHEMY_DATABASE_URI =   'sqlite:///site.db'
+SQLALCHEMY_DATABASE_URI_2 = 'sqlite:///da.db'
+SQLALCHEMY_DATABASE_URI_3 = 'sqlite:///aegic.db'
+SQLALCHEMY_DATABASE_URI_4 = 'sqlite:///chto.db'
+SQLALCHEMY_DATABASE_URI_5 = 'sqlite:///lhun.db'
+SQLALCHEMY_DATABASE_URI_6 = 'sqlite:///infe.db'
+SQLALCHEMY_DATABASE_URI_7 = 'sqlite:///ayth.db'
+SQLALCHEMY_DATABASE_URI_8 = 'sqlite:///sorc.db'
+    
+SQLALCHEMY_BINDS = {
+    'da': SQLALCHEMY_DATABASE_URI_2,
+    'ae': SQLALCHEMY_DATABASE_URI_3,
+    'ch': SQLALCHEMY_DATABASE_URI_4,
+    'lh': SQLALCHEMY_DATABASE_URI_5,
+    'in': SQLALCHEMY_DATABASE_URI_6,
+    'ay': SQLALCHEMY_DATABASE_URI_7,
+    'so': SQLALCHEMY_DATABASE_URI_8, }
+    
