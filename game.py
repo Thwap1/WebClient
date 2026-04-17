@@ -9,6 +9,7 @@ import mapper
 from extensions import db
 from mapper import mazes
 import keybinds
+import trig
 #  flask logging config 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
@@ -38,7 +39,7 @@ def start_mud_loop():
     mud_loop.run_forever()
 threading.Thread(target=start_mud_loop, daemon=True).start()
 
-# --- browser connects.
+
 @socketio.on('connect')
 def handle_connect():
     asyncio.run_coroutine_threadsafe(mud_session(request.sid),mud_loop)
@@ -67,10 +68,8 @@ async def send_msg(sid,msg):
         
         wrap = {"msg":msg} 
         if mapper.mazes[sid]["mapper_state"] == "REC":
-            
             if mapper.checkInput(sid, wrap, socketio):
                 return
-            
             msg = wrap["msg"]
             
             
@@ -203,9 +202,31 @@ async def process_session(sid,reader,writer):
             except Exception as e:
                 print("connection error:",e)
         
-        
+
+
+        monster = False
         data = og_data.decode(FORMAT, errors='ignore')
-        
+        if og_data.startswith(b'\033['):
+            if (result := trig.match_color_start(og_data)):
+                og_data = result[0].encode(FORMAT)
+                monster = result[1]
+        if monster:
+            pass
+        else:
+            if (result:= trig.match_trigger_start_end(og_data)):
+                if not isinstance(result, list):
+                    result = [result]
+                for thing in result:
+                    if thing == "#GAG":
+                        og_data = b''
+                    elif thing in trig.COLORS:
+                        colored = trig.COLORS[thing] + data + trig.COLORS["reset"]+"\n"
+                        og_data = colored.encode(FORMAT)
+                    
+
+                
+            
+
         output+=data
 
         

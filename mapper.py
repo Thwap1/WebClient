@@ -205,6 +205,8 @@ def checkInput(sid, wrap, socketio):
     maze = mazes[sid]
     if msg in ['n','s','e','w','nw','ne','sw','se','u','d']:
         maze["room_queue"].put((msg,msg))
+
+    #--- instructions that the command goes to room_queue, removes the MSK from start.
     elif msg[:3]  == "MSK":
         command,dirs = msg[4:].strip().strip().rsplit(" ", 1)
         maze['room_queue'].put((command,dirs))
@@ -217,7 +219,7 @@ def checkInput(sid, wrap, socketio):
             db.session.commit()
         setup_level(sid,maze["planet"],socketio,)
         return True
-    elif msg[:5]  == "LINE ":# and maze["z"] != 90:
+    elif msg[:5] == "LINE " and maze["z"] != 90:
         try:
             dirs = msg[5:]                                                                    
             dx,dy = maze["x"],maze["y"]
@@ -228,7 +230,6 @@ def checkInput(sid, wrap, socketio):
                     dy += dicty[i]
             newline = {'x':maze["x"],'y':maze['y'],'z':maze['z'],'x2':dx,'y2':dy}
             line = Lines(lvl = maze["level_id"], x=maze["x"], y = maze["y"], z = maze["z"],x2 = dx, y2 = dy)
-            
             db.session.add(line)
             db.session.commit()
             maze["svg_lines"].append(newline)
