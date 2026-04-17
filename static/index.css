@@ -197,7 +197,22 @@ body {
     top:0px;
 }
 
+@keyframes shrinkAndDisappear {
+  from {
+    transform: scale(0.94);
+    opacity: 0.6;
+    fill: blue;
+  }
+  to {
+    transform: scale(0);
+    opacity: 0;
+    fill: red;
+  }
+}
 
+.shrinking {
+  animation: shrinkAndDisappear 1s forwards;
+}
 .fog > .room {
     fill:#222;
     stroke:#333;

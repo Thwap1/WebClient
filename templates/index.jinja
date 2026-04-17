@@ -52,7 +52,7 @@
                     <defs>
                         <g id='hero' fill="#3333AA44" stroke-width="2" stroke="#456193"><rect  rx="2" ry="2 "x="0" y="0" width="12" height="12"/></g>
                     </defs>
-                <use id="dude" class="hide" transform-origin="6px 6px" xlink:href="#hero"  x="0" y="0">
+                <use id="map_dude" class="hide" transform-origin="6px 6px" xlink:href="#hero"  x="0" y="0">
                 </svg>
             <div id="map-resize-handle"></div> 
         </div>
@@ -71,7 +71,7 @@
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/ansi_up@5.0.0/ansi_up.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ansi_up@5.0.0/ansi_up.min.js"></script> <!-- Eventually replace this with a custom implementation for better optimization and flexibility-->
 
 <script> // keybindings
     const KeyDownActions = [
@@ -179,11 +179,10 @@
 </script>
 <script> // output + parsing socket outout
 
-    const output = document.getElementById("output");
-    
+    const output = document.getElementById("output");    
     var outputbufferSize = 0
 
-    const ansi_up = new AnsiUp();
+    const ansi_up = new AnsiUp(); 
     const socket = io({
           transports: ['websocket'] 
       });
@@ -208,7 +207,6 @@
 
     socket.on('output', data => 
     {
-        
         if (data.output) // actual mud text.
         {
             const fragment = document.createDocumentFragment(); 
@@ -228,11 +226,62 @@
                     output.scrollTop = output.scrollHeight;
             }
         }
-
+        if (data.player_pos)
+        {
+            
+            // skip animation part if browser is not visible .
+            if (document.visibilityState === 'visible')
+            {
+                if (player_lvl != data.player_pos.z)
+                {
+                    // switching level so removing all prev move animation
+                    document.querySelectorAll('.clone').forEach(element => element.remove());
+                } 
+                else 
+                {
+                    // adding 
+                    elem = svg_map.getElementById("z"+player_lvl)    
+                    if (elem)
+                    {
+                        clone = document.createElementNS(svgns, "g");
+                        clone.innerHTML = "<rect  rx='1' ry='1' y='"+(parseInt(map_dude.getAttribute('y'))+1)+"' x='"+(parseInt(map_dude.getAttribute('x'))+1)+"' width='10' height='10'/>"
+                        clone.classList.add("clone")
+                        clone.style.transformOrigin = ""+ (parseInt(map_dude.getAttribute('x')) + 6)+"px "+ (parseInt(map_dude.getAttribute('y')) + 6)+"px";
+                        clone.classList.add('shrinking');
+                        clone.offsetWidth;
+                        requestAnimationFrame(() => {
+                            clone.classList.add('shrinking');
+                            clone.addEventListener('animationend', () => {
+                                clone.remove(); 
+                            });
+                        });
+                    elem.appendChild(clone);
+                    }
+                }
+            }
+            map_dude.setAttribute("y",data.player_pos.y<<4);
+            map_dude.setAttribute("x",data.player_pos.x<<4);
+            map_dude.style.transformOrigin = ""+((data.player_pos.x<<4)+6)+"px "+((data.player_pos.y<<4)+6)+"px";
+            player_lvl = data.player_pos.z; 
+            currentroom = document.getElementById("R"+data.player_pos.x+":"+data.player_pos.y+":"+data.player_pos.z)
+            if (currentroom)
+                {
+                currentroom.parentNode.classList.remove("fog")              
+                }
+            map_button = document.getElementById("dot"+data.player_pos.z);
+            if (map_button != current_lvl)
+            {
+                current_lvl.classList.remove("dot2");
+                map_button.classList.add("dot2");
+                current_lvl=map_button;
+                recalculate_visible_layers(data.player_pos.z);
+            }
+        
+        }
     });
 </script>
 
-<script> //map
+<script> 
     const xlinkns = "http://www.w3.org/1999/xlink";
     const svgns = "http://www.w3.org/2000/svg";
     const container = document.getElementById("map-inner");
@@ -240,7 +289,7 @@
     const svg_map = document.getElementById('svg_map');
     const svg_ow = document.getElementById('svg_ow');
     const svg_hero = document.getElementById('svg_hero');
-    const dude = document.getElementById('dude');
+    const map_dude = document.getElementById('map_dude');
     let mapHandleisDragging = false;
     var levels = [];
     var current_lvl = document.getElementById("dot90");
@@ -248,7 +297,7 @@
     var min_x =-1;
     var max_y = 1;
     var max_x = 1;
-    var hero_lvl = 0;
+    var player_lvl = 0;
 
 
     map_resize_handle.addEventListener('mousedown', () => {
@@ -305,7 +354,8 @@
         svg_ow.classList.toggle("hide",level!=90)
         svg_map.classList.toggle("hide",level==90)
         svg_hero.classList.remove("hide")   
-        dude.classList.toggle("hide",(level!=hero_lvl || level == 90));       
+        //map_dude.classList.toggle("hide",(level!=player_lvl || level == 90));       
+        map_dude.classList.remove("hide");       
         for (i = 0; i < levels.length; i++)
         {
             levels[i].classList.toggle("hide",(levels[i].id!="z"+level));
@@ -420,6 +470,7 @@
             for (const item of rooms) {
                 room(item.x, item.y, item.z, item.v, true);
             }
+            scaleviewbox()
         }
         if (data.lines)
         {

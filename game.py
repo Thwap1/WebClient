@@ -8,6 +8,7 @@ import logging
 import mapper
 from extensions import db
 from mapper import mazes
+import keybinds
 #  flask logging config 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
@@ -80,7 +81,26 @@ async def send_msg(sid,msg):
     except Exception as e:
         print("error while trying to send data to mud:",e)
     
-
+@socketio.on('fkey')
+def fkey(data):
+    sid = request.sid
+    if sid in mud_connections:
+        if data["fkey"]:
+            fkey = data["fkey"]
+            if fkey in keybinds.override_dicts and mapper.mazes[sid]["prev_id"] and mapper.mazes[sid]["prev_id"] in keybinds.override_dicts[fkey]:
+                for msg in keybinds.override_dicts[fkey][mapper.mazes[sid]["prev_id"]][1:]:   
+                     asyncio.run_coroutine_threadsafe(send_msg(sid,msg),mud_loop)
+            elif data["ctrl"]:
+                if fkey in keybinds.CtrlKeyDownActions:
+                    for msg in keybinds.CtrlKeyDownActions[fkey]:
+                        asyncio.run_coroutine_threadsafe(send_msg(sid,msg),mud_loop)
+            elif data["alt"]:
+                if fkey in keybinds.AltKeyDownActions:
+                    for msg in keybinds.AltKeyDownActions[fkey]:
+                         asyncio.run_coroutine_threadsafe(send_msg(sid,msg),mud_loop)
+            elif fkey in keybinds.KeyDownActions:
+                for msg in keybinds.KeyDownActions[fkey]:
+                   asyncio.run_coroutine_threadsafe(send_msg(sid,msg),mud_loop)
 
 
 @socketio.on('msg')
@@ -125,7 +145,7 @@ async def process_session(sid,reader,writer):
                     break 
                 if output or player_pos:
                     #should put everyting here at once.
-                    socketio.emit('output',{'output':output, 'pos': player_pos},to=sid)
+                    socketio.emit('output',{'output':output, 'player_pos': player_pos},to=sid)
                 output = ""
                 player_pos = None
                 chunk = await asyncio.wait_for(reader.read(2048), timeout=0.25)
@@ -161,7 +181,9 @@ async def process_session(sid,reader,writer):
                             elif gmcp_buffer.startswith(b'\xc9Room.Info'):
                                 
                                 try:
-                                    player_pos = mapper.parseRoomInfo(gmcp_buffer[11:-2],sid,socketio)
+                                    mapper.parseRoomInfo(gmcp_buffer[11:-2],sid,socketio)
+                                    player_pos = {"x": mapper.mazes[sid]["x"],"y": mapper.mazes[sid]["y"],"z": mapper.mazes[sid]["z"]}
+                                    
                                 except Exception as e:
                                     print(e)
                             state = STATE_OUTPUT

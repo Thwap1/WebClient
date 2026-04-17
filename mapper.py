@@ -53,14 +53,17 @@ def parseRoomInfo(data,sid,socketio):
         
         maze = mazes[sid]
         ui_keys= []
-        id = int(roomdata["id"],16)
-        print(roomdata)
-        print(id)
+        
+        prev_id = maze["prev_id"]
+        new_id = int(roomdata["id"],16)
+        maze["prev_id"] = new_id
+        print(roomdata,"\n",new_id)
+        
         
         # ---- keybindings from location to UI ---
         for dict in keybinds.override_dicts:
-            if id in keybinds.override_dicts[dict]:
-                ui_keys.append(f"{dict} {keybinds.override_dicts[dict][id][0]}")
+            if new_id in keybinds.override_dicts[dict]:
+                ui_keys.append(f"{dict} {keybinds.override_dicts[dict][new_id][0]}")
 
         # ---- send / clear keys 
         if ui_keys or maze["had_keys"]:
@@ -71,77 +74,77 @@ def parseRoomInfo(data,sid,socketio):
 
         # ---- mapper movement not enabled
         if not mazes[sid]["mapper_state"]:
-            return False
+            return 
         
         
         # ---- actual locations in map ---
         # z = 90 ow and not inside area.
-        player_location = False
         
-        if id in mazeslib.bases:
+        
+        if new_id in mazeslib.bases:
             maze['z'] = 90
             popRoom(maze)
-            if 'level_id' not in maze or maze['level_id'] != mazeslib.bases[id]["id"]:
-                setup_level(sid, maze["planet"], socketio, id)
-                player_location = {"x": maze["x"],"y": maze["y"],"z": 90}
+            if 'level_id' not in maze or maze['level_id'] != mazeslib.bases[new_id]["id"]:
+                setup_level(sid, maze["planet"], socketio, new_id)
+                
 
         #room exists (or not in record mode)        
-        elif id in maze["dungeon"]:
-            maze["x"] = maze["dungeon"][id]["x"]
-            maze["y"] = maze["dungeon"][id]["y"]
-            maze["z"] = maze["dungeon"][id]["z"]
+        elif new_id in maze["dungeon"]:
+            maze["x"] = maze["dungeon"][new_id]["x"]
+            maze["y"] = maze["dungeon"][new_id]["y"]
+            maze["z"] = maze["dungeon"][new_id]["z"]
             popRoom(maze)
-            maze["prev_id"] = id
-            return player_location
+            
         
         if maze["mapper_state"] != "REC":
-            maze["prev_id"] = id
-            return player_location
+            return
         
-        print("1")
+
 
         # ---- generating new rooms to map ---    
         command,dirs = popRoom(maze) 
         print(command,dirs)
-        if maze["prev_id"] in mazeslib.bases:
-            print("ENTER?")
-            if command == mazeslib.bases[maze["prev_id"]]['in_cmd']:
+ 
+      
+
+        if prev_id in mazeslib.bases:
+            if command == mazeslib.bases[prev_id]['in_cmd']:
                 maze["x"], maze["y"], maze["z"] = 0, 0 ,0
-                print("ENTERMAZE")
-        if maze['z'] == 90:
-            maze["prev_id"] = id
+                
+        elif maze['z'] == 90:
             return False
         for i in dirs:
             if i in dictx:
                 maze["x"] += dictx[i]
                 maze["y"] += dicty[i]
-                maze["z"] += dictz[i]
+                maze["z"] += dictz[i]  
+
 
         room_value = sum(dict_dirs.get(exit, 0) for exit in roomdata.get('exits', []))
 
         
         if maze["autodao"]: # ----- Dao is "way out in some mazes its just easy to bind it to where you came". 
             if (dir_out := {'nw':'se','ne':'sw','se':'nw','sw':'ne','e':'w','w':'e','s':'n','n':'s','u':'d','d':'u'}.get(dirs,None)):
-                    maze['da_out'][id] = dir
-                    way_out = Dawae(da_nro=-1 , lvl=maze["level_id"],id = id, da_wae = dir_out)
+                    maze['da_out'][new_id] = dir
+                    way_out = Dawae(da_nro=-1 , lvl=maze["level_id"],id = new_id, da_wae = dir_out)
                     db.session.merge(way_out)
-        print("NEWROOM")
-        new_room =  Rooms(id = id, lvl = maze["level_id"], x=maze["x"], y=maze["y"], z=maze["z"], value=room_value)
+        
+        new_room =  Rooms(id = new_id, lvl = maze["level_id"], x=maze["x"], y=maze["y"], z=maze["z"], value=room_value)
         db.session.merge(new_room)
         db.session.commit()
-        print("commit")
-        player_location = {"x": maze["x"],"y": maze["y"],"z": maze["z"]}
+        
+        
         room = {"x":maze["x"],"y":maze["y"],"z":maze["z"],"v":room_value}
-        print("EMIT")
+        
         socketio.emit('map', {'rooms':[room]}, to = sid)
-        maze["dungeon"][id] = room
-        maze["prev_id"] = id
-        print("END")
-        return player_location
+        maze["dungeon"][new_id] = room
+        
+        
+        
         
         
     except Exception as e:
-        print("room parsing error", e)
+        print("room GMCP mapper.py parsing error", e)
 
 def setup_level(sid, new_planet, socketio, new_id = -1):
     try:
@@ -212,6 +215,7 @@ def checkInput(sid, wrap, socketio):
             for row in table.query.filter_by(lvl = maze["level_id"]):
                 db.session.delete(row)
             db.session.commit()
+        setup_level(sid,maze["planet"],socketio,)
         return True
     elif msg[:5]  == "LINE ":# and maze["z"] != 90:
         try:
