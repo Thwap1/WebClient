@@ -9,7 +9,8 @@ import mapper
 from extensions import db
 from mapper import mazes
 import keybinds
-import trig
+
+import re
 #  flask logging config 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
@@ -39,6 +40,19 @@ def start_mud_loop():
     mud_loop.run_forever()
 threading.Thread(target=start_mud_loop, daemon=True).start()
 
+ansi_escape = re.compile(r'''
+    \x1B  # ESC
+    (?:   # 7-bit C1 Fe (except CSI)
+        [@-Z\\-_]
+    |     # or [ for CSI, followed by a control sequence
+        \[
+        [0-?]*  # Parameter bytes
+        [ -/]*  # Intermediate bytes
+        [@-~]   # Final byte
+    )
+''', re.VERBOSE)
+
+import trig
 
 @socketio.on('connect')
 def handle_connect():
@@ -205,29 +219,31 @@ async def process_session(sid,reader,writer):
 
 
         monster = False
-        data = og_data.decode(FORMAT, errors='ignore')
+
+        container = {"og" : og_data}        
+        container["text_data"] = ansi_escape.sub('',og_data.decode(FORMAT, errors='ignore').strip())
+
         if og_data.startswith(b'\033['):
-            if (result := trig.match_color_start(og_data)):
-                og_data = result[0].encode(FORMAT)
-                monster = result[1]
+            monster = trig.match_color_start(container)
         if monster:
             pass
         else:
             if (result:= trig.match_trigger_start_end(og_data)):
+                print("MATCH")
                 if not isinstance(result, list):
                     result = [result]
                 for thing in result:
                     if thing == "#GAG":
                         og_data = b''
                     elif thing in trig.COLORS:
-                        colored = trig.COLORS[thing] + data + trig.COLORS["reset"]+"\n"
+                        colored = trig.COLORS[thing] + container["text_data"] + trig.COLORS["reset"]+"\n"
                         og_data = colored.encode(FORMAT)
                     
 
                 
             
-
-        output+=data
+        
+        output += container["og"].decode(FORMAT, errors='ignore')
 
         
     

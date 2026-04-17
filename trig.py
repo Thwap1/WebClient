@@ -1,3 +1,18 @@
+# First draft builds start/end triggers only.
+# Triggers are loaded from the setup folder.
+# Some trigger sets (e.g. monster names) are kept in separate files,
+# such as color-specific variants, to avoid matching non-ANSI lines unnecessarily.
+#
+# No wildcards are used; triggers are implemented as nested hash tables,
+# providing lightweight branching similar to regex-style alternatives
+# like {this|that|asdf}, without full regex complexity.
+# 
+# UI-modifications to those will be implemented later
+# possibly later folder with player namehash and restrictions how many triggers there too.
+#
+
+from game import FORMAT
+
 COLORS = {
     "reset": "\033[0m",
 
@@ -34,49 +49,56 @@ COLORS = {
 
 starts_with, ends_with = {},{}
 
-def match_color_start(data):
-    MOB_COLORS = {'wounded': 30, 'mob': 36, 'agro': 31}
-    color = None
-    i = 0
-    while data.startswith(b'\033[', i):
-        end = data.find(b'm', i + 2)
-        if end == -1:
-            break       
-        codes = data[i + 2:end].split(b';')
-
-        for c in codes:
-            if c == b'1':
-                continue  # skip bold
-            try:
-                val = int(c)
-            except ValueError:
-                continue
-                            
-            if val != 0:
-                color = val
-                break
-                            
-        if color is not None:
-            break
-        i = end + 1 
-         
-    # if monster needs to be lited / handle gathered
-    if color in MOB_COLORS.values():
-        #mirror images parse
+def match_color_start(container):
+    og_data = container["og"]
+    try:
+        MOB_COLORS = {'wounded': 30, 'mob': 36, 'agro': 31}
+        color = None
         i = 0
-        if  len(data) > 9: 
-            if '0' <= data[i] <= '9':
-                i+=1
+        while og_data.startswith(b'\033[', i):
+            end = og_data.find(b'm', i + 2)
+            if end == -1:
+                break       
+            codes = og_data[i + 2:end].split(b';')
+
+            for c in codes:
+                if c == b'1':
+                    continue  # skip bold
+                try:
+                    val = int(c)
+                except ValueError:
+                    continue
+
+                if val != 0:
+                    color = val
+                    break
+
+            if color is not None:
+                break
+            i = end + 1 
+
+        # if monster needs to be lited / handle gathered
+        if color in MOB_COLORS.values():
+            
+            data = container["text_data"]
+            #mirror images parse
+            i = 0
+            if  len(data) > 9: 
                 if '0' <= data[i] <= '9':
                     i+=1
-                if data[i:i+7]==" times ":
-                    i+=7
-                else:
-                    i=0
-                            
-                            
-        if (match:= monster_search(data[i:])):                
-            return (COLORS['bright_blue'] + data + COLORS['reset']+"\n",match)
+                    if '0' <= data[i] <= '9':
+                        i+=1
+                    if data[i:i+7]==" times ":
+                        i+=7
+                    else:
+                        i=0
+
+            
+            if (match:= monster_search(container["text_data"][i:])):
+                container["og"] = (COLORS['bright_blue'] +  container["text_data"] + COLORS['reset']+"\n").encode(FORMAT)
+                return match
+    except Exception as e:
+        print("colormatch error",e)
 
 lookup_end_to_start, lookup_start_to_end, monster_search_table = {},{},{}
 
@@ -101,6 +123,7 @@ for w in ends_with:
               
 
 def monster_search(data):
+    print(data)
     table = monster_search_table
     for letter in data:
         if letter in table:
@@ -108,8 +131,10 @@ def monster_search(data):
         else:
            # even partial match can be match since there could be multiple matches and if '$' exists it has matched to some trig
            break
-    if '$' in table: 
+    if '$' in table:
         return table['$']
+            
+        
     return False
 
 
@@ -139,7 +164,7 @@ def match_trigger_start_end(data):
 
 def load():
     
-    monster_search_table = {}
+    global monster_search_table
     try:
         #file has monsters with syntax from start and then with ::: delim it has after that handle for that monster
         with open("setup/monsters.txt", "r", encoding="utf-8") as f:
@@ -155,11 +180,12 @@ def load():
                         table[letter] = {}     
                     table = table[letter]
                 table["$"] = monster_name
+        print(monster_search_table)
     except FileNotFoundError:
         
         pass  
-    
 
+    
 load()
 
- 
+
