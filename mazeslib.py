@@ -1,6 +1,6 @@
 
 autodao=[9679,248446,410245] 
-default={"aegi":2559517210,"ayth":3665342465, "lhun":3665342465}
+default={"aegi":349497236,"ayth":3665342465, "lhun":3665342465}
 ship='519,627'
 arch='1157,865'
 coord_to_id = {
@@ -30,9 +30,9 @@ bases ={     1598473154:    {"x":511,"y":500, 'id':511500, 'in_cmd':'forest', 'n
             226176588:      {"x":994,"y":562, 'id':994562, 'in_cmd':'w',      'name':'Mahrakc' },
             2299837186:     {"x":996,"y":557, 'id':994562, 'in_cmd':'w',      'name':'Mahrakc' },
 
-            3311899503:     {"x":0,"y":0, 'id':0, 'in_cmd':'test',      'name':'TEsTRESET' },
-
-            3665342465:     {"x":96,"y":79, 'id':9679, 'in_cmd':'enter', 'name':'City of myth'}, 
+            3311899503:     {"x":0,"y":0,     'id':0,      'in_cmd':'test',   'name':'TEsTRESET' },
+            349497236:      {"x":506,"y":632, 'id': 506632,'in_cmd': 'n',     'name':"Vaerlon"},
+            3665342465:     {"x":96,"y":79,   'id':9679,   'in_cmd':'enter',  'name':'City of myth'}, 
             
             3884918113: {"x":410,"y":245, 'id':410245, 'in_cmd':'enter', 'name':'Citadel of Zephyrs'},
             2629194218: {"x":248,"y":446, 'id':248446, 'in_cmd':'enter', 'name':'Cloud City'},

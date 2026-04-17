@@ -26,7 +26,7 @@ default_planet = "aegi"
 
 def change_state(msg,sid):
     if not sid in mazes:
-        mazes[sid] = {"room_queue":queue.Queue(),"mapper_state":None, "planet": default_planet }
+        mazes[sid] = {"room_queue":queue.Queue(),"mapper_state":None, "planet": default_planet, "had_keys": False, "prev_id": None }
         
     maze = mazes[sid]
     with maze["room_queue"].mutex:maze["room_queue"].queue.clear()
@@ -40,9 +40,9 @@ def popRoom(maze):
         command,dirs = maze['room_queue'].get(timeout=0)
         return (command,dirs)
     except Exception as e:
+        print(e)
         return ("","")
         
-
 def parseRoomInfo(data,sid,socketio):
     try:
         
@@ -54,6 +54,8 @@ def parseRoomInfo(data,sid,socketio):
         maze = mazes[sid]
         ui_keys= []
         id = int(roomdata["id"],16)
+        print(roomdata)
+        print(id)
         
         # ---- keybindings from location to UI ---
         for dict in keybinds.override_dicts:
@@ -80,7 +82,7 @@ def parseRoomInfo(data,sid,socketio):
             maze['z'] = 90
             popRoom(maze)
             if 'level_id' not in maze or maze['level_id'] != mazeslib.bases[id]["id"]:
-                setup_level(sid,maze["planet"],id,socketio)
+                setup_level(sid, maze["planet"], socketio, id)
                 player_location = {"x": maze["x"],"y": maze["y"],"z": 90}
 
         #room exists (or not in record mode)        
@@ -89,17 +91,25 @@ def parseRoomInfo(data,sid,socketio):
             maze["y"] = maze["dungeon"][id]["y"]
             maze["z"] = maze["dungeon"][id]["z"]
             popRoom(maze)
-        if maze["mapper_state"] != "REC":
+            maze["prev_id"] = id
             return player_location
         
-
+        if maze["mapper_state"] != "REC":
+            maze["prev_id"] = id
+            return player_location
+        
+        print("1")
 
         # ---- generating new rooms to map ---    
         command,dirs = popRoom(maze) 
+        print(command,dirs)
         if maze["prev_id"] in mazeslib.bases:
+            print("ENTER?")
             if command == mazeslib.bases[maze["prev_id"]]['in_cmd']:
                 maze["x"], maze["y"], maze["z"] = 0, 0 ,0
+                print("ENTERMAZE")
         if maze['z'] == 90:
+            maze["prev_id"] = id
             return False
         for i in dirs:
             if i in dictx:
@@ -115,15 +125,18 @@ def parseRoomInfo(data,sid,socketio):
                     maze['da_out'][id] = dir
                     way_out = Dawae(da_nro=-1 , lvl=maze["level_id"],id = id, da_wae = dir_out)
                     db.session.merge(way_out)
+        print("NEWROOM")
         new_room =  Rooms(id = id, lvl = maze["level_id"], x=maze["x"], y=maze["y"], z=maze["z"], value=room_value)
         db.session.merge(new_room)
         db.session.commit()
+        print("commit")
         player_location = {"x": maze["x"],"y": maze["y"],"z": maze["z"]}
         room = {"x":maze["x"],"y":maze["y"],"z":maze["z"],"v":room_value}
+        print("EMIT")
         socketio.emit('map', {'rooms':[room]}, to = sid)
         maze["dungeon"][id] = room
         maze["prev_id"] = id
-        
+        print("END")
         return player_location
         
         
@@ -134,7 +147,7 @@ def setup_level(sid, new_planet, socketio, new_id = -1):
     try:
         global mazes
         if not sid in mazes:
-            mazes[sid] = {"room_queue":queue.Queue(),"mapper_state":None, "planet": default_planet }
+            mazes[sid] = {"room_queue":queue.Queue(),"mapper_state":None, "planet": default_planet, "had_keys": False, "prev_id": None }
         maze = mazes[sid]
         maze['dae_level'] = 0
         maze['dae_default'] = 0
@@ -188,18 +201,38 @@ def checkInput(sid, wrap, socketio):
         return False
     maze = mazes[sid]
     if msg in ['n','s','e','w','nw','ne','sw','se','u','d']:
-        maze["room_queue"].put(msg,msg)
+        maze["room_queue"].put((msg,msg))
     elif msg[:3]  == "MSK":
         command,dirs = msg[4:].strip().strip().rsplit(" ", 1)
         maze['room_queue'].put((command,dirs))
         wrap['msg'] = command
+    #--- destroy existing maze
     elif msg in ["NUKEMAZE123"]:
         for table in [Rooms,Dawae,Lines]:
-            for row in table.query.filter_by(lvl=maze["level_id"]):
+            for row in table.query.filter_by(lvl = maze["level_id"]):
                 db.session.delete(row)
             db.session.commit()
-        print("NUKE")
         return True
+    elif msg[:5]  == "LINE ":# and maze["z"] != 90:
+        try:
+            dirs = msg[5:]                                                                    
+            dx,dy = maze["x"],maze["y"]
+            
+            for i in dirs:
+                if i in dictx:
+                    dx += dictx[i]
+                    dy += dicty[i]
+            newline = {'x':maze["x"],'y':maze['y'],'z':maze['z'],'x2':dx,'y2':dy}
+            line = Lines(lvl = maze["level_id"], x=maze["x"], y = maze["y"], z = maze["z"],x2 = dx, y2 = dy)
+            
+            db.session.add(line)
+            db.session.commit()
+            maze["svg_lines"].append(newline)
+            socketio.emit('map', {'clear':False, 'lines':[newline]}, to = sid)
+            return True
+        except Exception as e:
+            print("error making svg line:",e)
+            return True
     
 
 

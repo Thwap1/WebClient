@@ -319,7 +319,12 @@
             }
         }          
     }
-
+    function remove_room(x,y,z){
+        let room = document.getElementById("R"+x+":"+y+":"+z);
+        if (room)
+            room.parentNode.remove(room)
+        
+    }
 // Drawing the SVG room
     function room(x,y,z,room_type,fog=false)
     {
@@ -354,21 +359,12 @@
         max_x = Math.max(x,max_x);min_x = Math.min(x,min_x);max_y = Math.max(y,max_y);min_y = Math.min(y,min_y);         
 
         
-        let g = document.getElementById("R"+x+":"+y+":"+z);
-        if (g) 
-        {
-            g = g.parentNode
-            let c = g.childNodes;
-            for (let i = c.length - 1; i >= 0; i--) 
-            {
-                //TODO if there is gotta keep link to it.
-                g.removeChild(c[i]);        
-            }
-        } else
-        {
-            g = document.createElementNS(svgns, "g");
-			svg.appendChild(g);   
-        }
+        
+        g = remove_room(x,y,z)
+        g = document.createElementNS(svgns, "g");
+		svg.appendChild(g);   
+        
+        
         var room_base = document.createElementNS(svgns, "use");	    
 		room_base.setAttributeNS(null,"y",y << 4)
         room_base.setAttributeNS(null,"x",x << 4)
@@ -376,6 +372,7 @@
         room_base.setAttributeNS(xlinkns, "href", "#"+(room_type % 16));
 		room_base.classList.add("room")
         g.appendChild(room_base);
+
         if (room_type & 31457280)
         {
     	    var room_diagonals = document.createElementNS(svgns, "use");	
@@ -416,25 +413,34 @@
                 if (el) el.classList.add("hide");
             }
         }
+        if (data.rooms)
+        {
+            
+            const rooms = data.rooms;
+            for (const item of rooms) {
+                room(item.x, item.y, item.z, item.v, true);
+            }
+        }
+        if (data.lines)
+        {
+            
+            const l = data.lines;
+            for (const item of l) {
+                draw_line(item.x, item.y, item.z, item.x2,item.y2);
+            }
+        }
 
-        const data = data.rooms;
-        for (const item of data) {
-            room(item.x, item.y, item.z, item.v, true);
-        }
-        const l = data.lines;
-        for (const item of l) {
-            draw_line(item.x, item.y, item.z, item.x2,item.y2);
-        }
-        
     });
 // Two extended lines on the map: black below rooms, grey above.
     function draw_line(x,y,z,x2,y2)
     { 
-            
+            console.log(x,y,z,x2,y2)
             elem = svg_map.getElementById(`R${x}:${y}:${z}`)
             elem2 = svg_map.getElementById(`R${x2}:${y2}:${z}`)
             if(elem == null || elem2 == null ){
+                console.log(elem,elem2)
                 return
+                
             } 
             parent1 = elem.parentNode
             parent2 = elem2.parentNode

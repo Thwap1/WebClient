@@ -98,7 +98,7 @@ async def mud_session(sid):
 async def process_session(sid,reader,writer):
     mud_connections[sid] = {"reader": reader,"writer": writer}
     
-    mapper.setup_level(sid,"ayth",socketio)
+    mapper.setup_level(sid,"aegi",socketio)
         
     await GMCP.gmcp_order(writer)
     
