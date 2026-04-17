@@ -42,11 +42,37 @@ threading.Thread(target=start_mud_loop, daemon=True).start()
 def handle_connect():
     asyncio.run_coroutine_threadsafe(mud_session(request.sid),mud_loop)
 
-async def send_msg(msg, sid):
+@socketio.on('disconnect')
+def disconnect_disconnect():
+    sid = request.sid
+    if sid in mud_connections:
+        try:
+            if sid in mapper.mazes:
+                mapper.mazes.pop(sid)
+            if sid in mud_connections:
+                writer = mud_connections[sid]['writer']
+            if writer:
+                writer.close()
+        except Exception as e:
+                print(f"closing connection error: {e}")
+
+
+async def send_msg(sid,msg):
     try:
+        
         if len(msg) == 3 and msg in ['TAL','REC']:
             socketio.emit('output',{'output':mapper.change_state(msg,sid)},to=sid)
             return
+        
+        wrap = {"msg":msg} 
+        if mapper.mazes[sid]["mapper_state"] == "REC":
+            
+            if mapper.checkInput(sid, wrap, socketio):
+                return
+            
+            msg = wrap["msg"]
+            
+            
 
         writer = mud_connections[sid]['writer']
         writer.write((msg+"\n").encode(FORMAT))
@@ -55,12 +81,14 @@ async def send_msg(msg, sid):
         print("error while trying to send data to mud:",e)
     
 
+
+
 @socketio.on('msg')
 def msg(data):
     sid = request.sid
     if sid in mud_connections:
         if data["msg"]:
-            asyncio.run_coroutine_threadsafe(send_msg(data["msg"],sid),mud_loop)
+            asyncio.run_coroutine_threadsafe(send_msg(sid,data["msg"]),mud_loop)
 
 
 async def mud_session(sid):
@@ -69,9 +97,9 @@ async def mud_session(sid):
 
 async def process_session(sid,reader,writer):
     mud_connections[sid] = {"reader": reader,"writer": writer}
-    with app.app_context():
-        mapper.setup_level(sid,"aegi")
-        socketio.emit('map',{'data':list(mapper.mazes[sid]["dungeon"].values()), 'lines':mapper.mazes[sid]["svg_lines"]},to=sid)
+    
+    mapper.setup_level(sid,"ayth",socketio)
+        
     await GMCP.gmcp_order(writer)
     
     STATE_OUTPUT,STATE_IAC, STATE_IAC_2, STATE_GMCP, STATE_GMCP_PREV_WAS_IAC  = 0,1,2,3,4
@@ -80,7 +108,7 @@ async def process_session(sid,reader,writer):
     text_buffer = bytearray() 
     gmcp_buffer = bytearray()
     output=""
-    
+    player_pos = None
     while True:
         og_data=b""
         while True:
@@ -95,10 +123,11 @@ async def process_session(sid,reader,writer):
                     og_data+=b'\n'
                     #outerloop will handle data and prevent too much nesting.
                     break 
-                if output:
+                if output or player_pos:
                     #should put everyting here at once.
-                    socketio.emit('output',{'output':output},to=sid)
+                    socketio.emit('output',{'output':output, 'pos': player_pos},to=sid)
                 output = ""
+                player_pos = None
                 chunk = await asyncio.wait_for(reader.read(2048), timeout=0.25)
                 if not chunk:
                     raise asyncio.CancelledError
@@ -132,11 +161,7 @@ async def process_session(sid,reader,writer):
                             elif gmcp_buffer.startswith(b'\xc9Room.Info'):
                                 
                                 try:
-                                    with app.app_context():
-                                        ui_keys, room, hero, dungeon = mapper.parseRoomInfo(gmcp_buffer[11:-2],sid)
-                                        if dungeon:
-                                            socketio.emit('map', {'data':list(mapper.mazes[sid]["dungeon"].values()), 'lines':mapper.mazes[sid]["svg_lines"]},to=sid)
-                                        
+                                    player_pos = mapper.parseRoomInfo(gmcp_buffer[11:-2],sid,socketio)
                                 except Exception as e:
                                     print(e)
                             state = STATE_OUTPUT

@@ -407,21 +407,25 @@
     }
 
 //  server provides updated data; client now clears old map and renders new.
-    socket.on('map', (msg) => {      
-        levels.forEach(el => el.remove());
-            for (let i = 8; i >= -11; i--) {
-            const el = document.getElementById(`dot${i}`);
-            if (el) el.classList.add("hide");
+    socket.on('map', (data) => {  
+        if (data.clear) 
+        {
+            levels.forEach(el => el.remove());
+                for (let i = 8; i >= -11; i--) {
+                const el = document.getElementById(`dot${i}`);
+                if (el) el.classList.add("hide");
+            }
         }
-        const data = msg.data;
 
+        const data = data.rooms;
         for (const item of data) {
             room(item.x, item.y, item.z, item.v, true);
         }
-        const l = msg.lines;
+        const l = data.lines;
         for (const item of l) {
             draw_line(item.x, item.y, item.z, item.x2,item.y2);
         }
+        
     });
 // Two extended lines on the map: black below rooms, grey above.
     function draw_line(x,y,z,x2,y2)
