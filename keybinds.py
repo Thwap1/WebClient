@@ -9,7 +9,7 @@ AltKeyDownActions = {
 
 KeyDownActions = {
     "Numpad1": ["sw"],"Numpad2": ["s"],"Numpad3": ["se"],"Numpad4": ["w"],"Numpad5": ["look"],
-    "Numpad6": ["e"],"Numpad7": ["nw"],"Numpad8": ["n"],"Numpad9": ["ne"],"NumpadAdd": ["mome_1","temu"],"NumpadSubtract": ["DA_WAE"],
+    "Numpad6": ["e"],"Numpad7": ["nw"],"Numpad8": ["n"],"Numpad9": ["ne"],"NumpadAdd": ["mome_","temu"],"NumpadSubtract": ["DA_WAE"],
     "NumpadDivide":["DA_OUT"]}
 
 # Keybindings here override defaults and are applied per room-info ID:

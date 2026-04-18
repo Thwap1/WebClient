@@ -5,11 +5,13 @@ import threading
 import socket
 import asyncio
 import logging
+import alias
 import mapper
+from common import FORMAT
 from extensions import db
 from mapper import mazes
 import keybinds
-
+from collections import deque
 import re
 #  flask logging config 
 log = logging.getLogger('werkzeug')
@@ -26,7 +28,7 @@ mud_connections = {}
 
 
 # constants / network config
-FORMAT = 'UTF-8'
+
 ICEHOST = "89.167.95.12"
 HEADER = 64000
 ICEPORT = 4000
@@ -86,11 +88,10 @@ async def send_msg(sid,msg):
                 return
             msg = wrap["msg"]
             
-            
+         
 
-        writer = mud_connections[sid]['writer']
-        writer.write((msg+"\n").encode(FORMAT))
-        await writer.drain()
+        await parse_command(sid,msg)
+        
     except Exception as e:
         print("error while trying to send data to mud:",e)
     
@@ -224,29 +225,78 @@ async def process_session(sid,reader,writer):
         container["text_data"] = ansi_escape.sub('',og_data.decode(FORMAT, errors='ignore').strip())
 
         if og_data.startswith(b'\033['):
-            monster = trig.match_color_start(container)
-        if monster:
-            pass
-        else:
-            if (result:= trig.match_trigger_start_end(og_data)):
-                print("MATCH")
-                if not isinstance(result, list):
-                    result = [result]
-                for thing in result:
-                    if thing == "#GAG":
-                        og_data = b''
-                    elif thing in trig.COLORS:
-                        colored = trig.COLORS[thing] + container["text_data"] + trig.COLORS["reset"]+"\n"
-                        og_data = colored.encode(FORMAT)
-                    
+            monster = trig.match_color_start(container) #this will manipulate container "og" (only colors)
 
-                
-            
-        
+        if result:= trig.match_trigger_start_end(container["text_data"]):
+            await parse_command(sid,result,container)    
         output += container["og"].decode(FORMAT, errors='ignore')
 
         
+
+async def parse_command(sid,initial_commands, data ={}):
+    seen = set()
+    stack = deque()
     
+    if not isinstance(initial_commands, list):
+        initial_commands = [initial_commands]
+
+    stack.extend(initial_commands)
+    
+    while stack:
+        comm = stack.popleft()
+        if isinstance(comm,list):
+            stack.extendleft(reversed(comm))
+            continue
+        if comm in alias.alias_list:
+            if comm not in seen:
+                print(alias.alias_list[comm])
+                stack.appendleft(alias.alias_list[comm])
+                seen.add(comm)
+                continue
+            
+        if comm[0] != "#":
+            
+            writer = mud_connections[sid]['writer']
+            writer.write((comm+"\n").encode(FORMAT))
+            await writer.drain()
+            
+            continue
+            
+        cmd_prefix = comm[1:3].lower() #no len check here but will do try,catch
+        #
+        # alias
+        #
+        if cmd_prefix == 'al':
+            _,name,*tokens = comm.split()
+            if tokens:
+                value = " ".join(tokens)
+            elif stack:
+                value = stack.popleft()
+            alias.alias_list[name] = value
+            
+        #
+        # gag
+        
+        elif cmd_prefix == 'ga':
+            data["og"] = b''
+        #
+        # nothing
+        
+        elif cmd_prefix == 'no':
+            print("NOPE NOPE")
+            pass
+        #
+        # color
+        
+        elif cmd_prefix == "cw":
+            if not data:
+                continue
+            _,color = comm.split(" ", 1)
+            if color and color in trig.COLORS:
+                colored = trig.COLORS[color] + data["text_data"] + trig.COLORS["reset"]+"\n"
+                data["og"] = colored.encode(FORMAT)
+
+
 
 @app.route("/")
 def index():

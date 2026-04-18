@@ -2,13 +2,62 @@
 
 
 
+alias_list = {}
 
-#todo load these from separate file
-alias = {"sipe3": ["get all no petals","enter tower","bank","dep","out","u","keep all holy symbol","sac_in","sacrifice noeq","q","sac_out","d","exit"],
-         "sipe": ["get all coins","get 10000 silver","enter tower","drop all bandages","u","d","bank","dep","out","exit"],
-         "sipe2": ["get all heart","enter tower","bank","dep","out","u","sac_in","sacrifice noeq","q","sac_out","d","exit"],
-         "zcamp": ["remove all embrace","eat all grub","eat all slug","eat all berry","use stop","skills camping","camp break","camp build"],
-         "wan4":["enter tower","wan44"],
-         "wan1":["remove \"DE\""," wield wand","use wand","switch to rege"],
-         "mome_1":"#no",
-         "valmis":"#no",}
+def parse(s):
+    stack = [[]]
+    token = ""
+
+    i = 0
+    while i < len(s):
+        c = s[i]
+
+        if c == "{":
+            if token.strip():
+                stack[-1].append(token.strip())
+                token = ""
+
+            stack.append([])
+
+        elif c == "}":
+            if token.strip():
+                stack[-1].append(token.strip())
+                token = ""
+
+            completed = stack.pop()
+            stack[-1].append(completed)
+
+        elif c == ";":
+            if token.strip():
+                stack[-1].append(token.strip())
+                token = ""
+
+        else:
+            token += c
+
+        i += 1
+
+    if token.strip():
+        stack[-1].append(token.strip())
+
+    return stack[0]
+
+def load(): 
+    global alias_list
+    try:
+        #file has monsters with syntax from start and then with ::: delim it has after that handle for that monster
+        with open("setup/alias.txt", "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if ":::" not in line:
+                    continue
+                name, what_to_do = line.split(":::", 1)
+                alias_list[name] = parse(what_to_do)
+                
+                
+                
+    except FileNotFoundError:
+        pass  
+
+load()
+

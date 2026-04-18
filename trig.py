@@ -11,7 +11,45 @@
 # possibly later folder with player namehash and restrictions how many triggers there too.
 #
 
-from game import FORMAT
+from common import FORMAT
+
+def parse(s):
+    stack = [[]]
+    token = ""
+
+    i = 0
+    while i < len(s):
+        c = s[i]
+
+        if c == "{":
+            if token.strip():
+                stack[-1].append(token.strip())
+                token = ""
+
+            stack.append([])
+
+        elif c == "}":
+            if token.strip():
+                stack[-1].append(token.strip())
+                token = ""
+
+            completed = stack.pop()
+            stack[-1].append(completed)
+
+        elif c == ";":
+            if token.strip():
+                stack[-1].append(token.strip())
+                token = ""
+
+        else:
+            token += c
+
+        i += 1
+
+    if token.strip():
+        stack[-1].append(token.strip())
+
+    return stack[0]
 
 COLORS = {
     "reset": "\033[0m",
@@ -60,7 +98,6 @@ def match_color_start(container):
             if end == -1:
                 break       
             codes = og_data[i + 2:end].split(b';')
-
             for c in codes:
                 if c == b'1':
                     continue  # skip bold
@@ -68,21 +105,16 @@ def match_color_start(container):
                     val = int(c)
                 except ValueError:
                     continue
-
                 if val != 0:
                     color = val
                     break
-
             if color is not None:
                 break
             i = end + 1 
 
-        # if monster needs to be lited / handle gathered
-        if color in MOB_COLORS.values():
-            
+        if color in MOB_COLORS.values(): # if monster needs to be lited / handle gathered
             data = container["text_data"]
-            #mirror images parse
-            i = 0
+            i = 0 #mirror images parse
             if  len(data) > 9: 
                 if '0' <= data[i] <= '9':
                     i+=1
@@ -91,9 +123,7 @@ def match_color_start(container):
                     if data[i:i+7]==" times ":
                         i+=7
                     else:
-                        i=0
-
-            
+                        i=0            
             if (match:= monster_search(container["text_data"][i:])):
                 container["og"] = (COLORS['bright_blue'] +  container["text_data"] + COLORS['reset']+"\n").encode(FORMAT)
                 return match
@@ -120,8 +150,6 @@ for w in ends_with:
         i-=1
     table["$"] = ends_with[w]
 
-              
-
 def monster_search(data):
     print(data)
     table = monster_search_table
@@ -129,16 +157,12 @@ def monster_search(data):
         if letter in table:
             table = table[letter]
         else:
-           # even partial match can be match since there could be multiple matches and if '$' exists it has matched to some trig
-           break
+           break # even partial match can be match since there could be multiple matches and if '$' exists it has matched to some trig
     if '$' in table:
         return table['$']
             
         
     return False
-
-
-
 
 #nested end and start tables for fast search.
 def match_trigger_start_end(data):
@@ -162,8 +186,7 @@ def match_trigger_start_end(data):
         return table['$']
     return False
 
-def load():
-    
+def load_monster(): 
     global monster_search_table
     try:
         #file has monsters with syntax from start and then with ::: delim it has after that handle for that monster
@@ -180,12 +203,32 @@ def load():
                         table[letter] = {}     
                     table = table[letter]
                 table["$"] = monster_name
-        print(monster_search_table)
-    except FileNotFoundError:
         
+    except FileNotFoundError:
         pass  
 
-    
-load()
+def load_trig_start(): 
+    global lookup_end_to_start
+    try:
+        #file has monsters with syntax from start and then with ::: delim it has after that handle for that monster
+        with open("setup/triggers.txt", "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if ":::" not in line:
+                    continue
+                syntax, what_to_do = line.split(":::", 1)
+                what_to_do = parse(what_to_do)
+                table = lookup_start_to_end
+                for letter in syntax:
+                    if letter not in table:
+                        table[letter] = {}     
+                    table = table[letter]
+                table["$"] = what_to_do
+            
+    except FileNotFoundError:
+        pass  
+
+load_trig_start()
+load_monster()
 
 
