@@ -3,6 +3,7 @@ import orjson
 import queue
 import keybinds
 from extensions import db
+import re
 from models import Dawae,Rooms,Lines
 
 #global mazes for player
@@ -13,6 +14,7 @@ dictx = {'w' : -1, 'n': 0, 'e': 1, 's': 0, 'd': 0, 'u': 0, 'se':1,'sw':-1,'nw':-
 dicty = {'w' : 0, 'n': -1, 'e': 0, 's': 1, 'd': 0, 'u': 0, 'se':1,'sw':1,'nw':-1,'ne':-1}
 dictz = {'w' : 0, 'n': 0, 'e': 0, 's': 0, 'd': -1, 'u': 1, 'se':0,'sw':0,'nw':0,'ne':0}
 
+#
 # for calculating rooms actual value (how to draw as svg)
 dict_dirs = {'west' : 1, 'north': 2, 'east': 4, 'south': 8, 'down': 512, 'up': 256,
           'downstairs': 512, 'upstairs': 256,'se': 2097152,'sw':4194304,'nw':8388608,'ne':16777216,'se,': 2097152,
@@ -23,7 +25,8 @@ dict_dirs = {'west' : 1, 'north': 2, 'east': 4, 'south': 8, 'down': 512, 'up': 2
           'w,' : 1, 'n,': 2, 'e,': 4, 's,': 8, 'd,': 512, 'u,': 256,  'upstairs,': 256, 'leave,': 1024}
 
 default_planet = "aegi"
-
+#
+#   is mapper recording, following or off
 def change_state(msg,sid):
     if not sid in mazes:
         mazes[sid] = {"room_queue":queue.Queue(),"mapper_state":None, "planet": default_planet, "had_keys": False, "prev_id": None }
@@ -35,6 +38,8 @@ def change_state(msg,sid):
         return f">> MAPPER OFF >>\n"
     return f">> MAPPER MODE: \033[{36}mTAL\033[0m >>\n" if msg == "TAL" else f">> MAPPER MODE: \033[{31}mREC\033[0m >>\n"
 
+#
+#   helper / first room out from queue to handle
 def popRoom(maze):
     try:
         command,dirs = maze['room_queue'].get(timeout=0)
@@ -43,6 +48,8 @@ def popRoom(maze):
         print(e)
         return ("","")
         
+#
+#   parse roominfo.gmcppacket
 def parseRoomInfo(data,sid,socketio):
     try:
         
@@ -55,9 +62,10 @@ def parseRoomInfo(data,sid,socketio):
         ui_keys= []
         
         prev_id = maze["prev_id"]
+        
         new_id = int(roomdata["id"],16)
         maze["prev_id"] = new_id
-        print(roomdata,"\n",new_id)
+        print("roomid:",new_id)
         
         
         # ---- keybindings from location to UI ---
@@ -142,10 +150,14 @@ def parseRoomInfo(data,sid,socketio):
         
         
         
-        
+    except ValueError as e:
+        return
+        #room did not have id. might have to return to this so that can map where id is obfuscated
     except Exception as e:
         print("room GMCP mapper.py parsing error", e)
 
+#
+#   setup/change level
 def setup_level(sid, new_planet, socketio, new_id = -1):
     try:
         global mazes
@@ -196,7 +208,8 @@ def setup_level(sid, new_planet, socketio, new_id = -1):
         print(f'setup error:{error}')
         print("Error type:", type(error)) 
 
-
+#
+#   If the mapper is in a state where it is recording input data, that data must be parsed for commands that modify the map and for tracking movement.
 def checkInput(sid, wrap, socketio):
     msg = wrap["msg"]
     global mazes
@@ -239,5 +252,32 @@ def checkInput(sid, wrap, socketio):
             print("error making svg line:",e)
             return True
     
-
-
+#
+#
+def handleMovementInterruptions(sid,command,data):
+    
+    try:
+        global mazes
+        if not sid in mazes or not mazes[sid]["mapper_state"] or not mazes[sid]["room_queue"]:
+            return
+        q = mazes[sid]['room_queue']
+        if q.empty():
+            return
+        if command == "#MAP_1": #remove one
+            
+            q.get(timeout=0)
+        elif command == "#MAP_A": #remove all
+            
+            with q.mutex:q.queue.clear()
+        elif command == "#MAP_F": #keep first remove all others
+            first = queue.get(timeout=0)
+            with q.mutex:q.queue.clear()
+            queue.put(first)
+        elif "#MAP_COORDS":
+            if re.search(r'^Your current coordinates are x = (\d+), y = (\d+)\.$', data):
+                 my_x,my_y = re.findall(r'\b\d+[.,]', data)
+                 mazes[sid]['x'],mazes[sid]['y'] = int(my_x[:-1]), int(my_y[:-1])
+                 
+    except Exception as e:
+        print("Error while handling movement interruptions",e)
+    

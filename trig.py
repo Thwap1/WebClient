@@ -10,7 +10,7 @@
 # UI-modifications to those will be implemented later
 # possibly later folder with player namehash and restrictions how many triggers there too.
 #
-
+lookup_end_to_start, lookup_start_to_end, monster_search_table = {},{},{}
 from common import FORMAT
 
 def parse(s):
@@ -85,8 +85,6 @@ COLORS = {
     "bg_white": "\033[47m",
 }
 
-starts_with, ends_with = {},{}
-
 def match_color_start(container):
     og_data = container["og"]
     try:
@@ -130,34 +128,13 @@ def match_color_start(container):
     except Exception as e:
         print("colormatch error",e)
 
-lookup_end_to_start, lookup_start_to_end, monster_search_table = {},{},{}
-
-for w in starts_with:
-    table = lookup_start_to_end
-    for l in w:
-        if l not in table:
-            table[l] = {}
-        table = table[l]
-    table["$"] = starts_with[w]
-
-for w in ends_with:
-    table = lookup_end_to_start
-    i = len(w) - 1
-    while i>=0:
-        if w[i] not in table:
-            table[w[i]] = {}
-        table = table[w[i]] 
-        i-=1
-    table["$"] = ends_with[w]
-
 def monster_search(data):
-    print(data)
     table = monster_search_table
     for letter in data:
         if letter in table:
             table = table[letter]
         else:
-           break # even partial match can be match since there could be multiple matches and if '$' exists it has matched to some trig
+           break
     if '$' in table:
         return table['$']
             
@@ -166,6 +143,7 @@ def monster_search(data):
 
 #nested end and start tables for fast search.
 def match_trigger_start_end(data):
+    
     table = lookup_start_to_end
     for l in data:
         if l in table:
@@ -174,17 +152,20 @@ def match_trigger_start_end(data):
            break
     if '$' in table:
         return table['$']
-    table = lookup_end_to_start
-    i = len(data) - 1
-    while i>=0:
-        if data[i] in table:
-            table = table[data]
-            i-=1
-        else:
-            break
-    if '$' in table:
-        return table['$']
-    return False
+    try:
+        table = lookup_end_to_start
+        i = len(data) - 1
+        while i>=0:
+            if data[i] in table:
+                table = table[data[i]]
+                i-=1
+            else:
+                break
+        if '$' in table:
+            return table['$']
+        return False
+    except Exception as e:
+        print("startend lookup error",e)
 
 def load_monster(): 
     global monster_search_table
@@ -207,26 +188,79 @@ def load_monster():
     except FileNotFoundError:
         pass  
 
+
+mapper_remove_dirs = [
+    "Your current coordinates are x:::#MAP_COORDS",
+    "You decide to stop fleeing.:::#MAP_A",
+    "You cannot do that while sleeping!:::#MAP_A",
+    "You are already trying to flee from battle!:::#MAP_F",
+    "Your access to the residence premises is denied.:::#MAP_1",
+    "You can't go that way!:::#MAP_1",
+    "The door is locked.:::#MAP_1",
+    "You can't flee to:::#MAP_1",]
+mapper_remove_end = {
+    "blocks your way.:::#MAP_1",
+}
+
 def load_trig_start(): 
     global lookup_end_to_start
     try:
         #file has monsters with syntax from start and then with ::: delim it has after that handle for that monster
-        with open("setup/triggers.txt", "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if ":::" not in line:
-                    continue
-                syntax, what_to_do = line.split(":::", 1)
-                what_to_do = parse(what_to_do)
-                table = lookup_start_to_end
-                for letter in syntax:
-                    if letter not in table:
-                        table[letter] = {}     
-                    table = table[letter]
-                table["$"] = what_to_do
+        
+        with open("setup/trig_start.txt", "a+", encoding="utf-8") as f:
+            f.seek(0)
             
+            sources = [f]
+            sources.append(mapper_remove_dirs)
+
+            for data in sources:
+                for line in data:
+                    line = line.strip()
+                    if ":::" not in line:
+                        continue
+                    syntax, what_to_do = line.split(":::", 1)
+                    what_to_do = parse(what_to_do)
+                    table = lookup_start_to_end
+                    for letter in syntax:
+                        if letter not in table:
+                            table[letter] = {}     
+                        table = table[letter]
+                    if '$' in table:
+                        table["$"].append(what_to_do)
+                    else:
+                        table["$"] = [what_to_do]
+        with open("setup/trig_end.txt", "a+", encoding="utf-8") as f:
+            f.seek(0)
+            
+            sources = [f]
+            sources.append(mapper_remove_end)
+            for data in sources:
+                for line in data:
+                    line = line.strip()
+                    if ":::" not in line:
+                        continue
+                    syntax, what_to_do = line.split(":::", 1)
+                    what_to_do = parse(what_to_do)
+                    table = lookup_end_to_start
+                    i = len(syntax) - 1
+                    while i>=0:
+                        if syntax[i] not in table:
+                            table[syntax[i]] = {}
+                        table = table[syntax[i]] 
+                        i-=1
+                    if '$' in table:
+                        table["$"].append(what_to_do)
+                    else:
+                        table["$"] = [what_to_do]
+
+
+
     except FileNotFoundError:
+        
         pass  
+
+
+
 
 load_trig_start()
 load_monster()

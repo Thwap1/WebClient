@@ -6,13 +6,16 @@ import socket
 import asyncio
 import logging
 import alias
+import orjson
 import mapper
 from common import FORMAT
 from extensions import db
 from mapper import mazes
 import keybinds
+import importlib
 from collections import deque
 import re
+import trig
 #  flask logging config 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
@@ -54,7 +57,12 @@ ansi_escape = re.compile(r'''
     )
 ''', re.VERBOSE)
 
-import trig
+@app.route("/")
+def index():
+    client_ip = request.remote_addr
+    if client_ip == HOST or client_ip.startswith('192'):
+        return render_template("index.jinja", fog="true", admin = "true")
+    return ""
 
 @socketio.on('connect')
 def handle_connect():
@@ -73,28 +81,7 @@ def disconnect_disconnect():
                 writer.close()
         except Exception as e:
                 print(f"closing connection error: {e}")
-
-
-async def send_msg(sid,msg):
-    try:
-        
-        if len(msg) == 3 and msg in ['TAL','REC']:
-            socketio.emit('output',{'output':mapper.change_state(msg,sid)},to=sid)
-            return
-        
-        wrap = {"msg":msg} 
-        if mapper.mazes[sid]["mapper_state"] == "REC":
-            if mapper.checkInput(sid, wrap, socketio):
-                return
-            msg = wrap["msg"]
-            
-         
-
-        await parse_command(sid,msg)
-        
-    except Exception as e:
-        print("error while trying to send data to mud:",e)
-    
+   
 @socketio.on('fkey')
 def fkey(data):
     sid = request.sid
@@ -115,7 +102,6 @@ def fkey(data):
             elif fkey in keybinds.KeyDownActions:
                 for msg in keybinds.KeyDownActions[fkey]:
                    asyncio.run_coroutine_threadsafe(send_msg(sid,msg),mud_loop)
-
 
 @socketio.on('msg')
 def msg(data):
@@ -138,7 +124,7 @@ async def process_session(sid,reader,writer):
     
     STATE_OUTPUT,STATE_IAC, STATE_IAC_2, STATE_GMCP, STATE_GMCP_PREV_WAS_IAC  = 0,1,2,3,4
     state = STATE_OUTPUT
-
+    partystatus = {}
     text_buffer = bytearray() 
     gmcp_buffer = bytearray()
     output=""
@@ -157,9 +143,13 @@ async def process_session(sid,reader,writer):
                     og_data+=b'\n'
                     #outerloop will handle data and prevent too much nesting.
                     break 
-                if output or player_pos:
-                    #should put everyting here at once.
-                    socketio.emit('output',{'output':output, 'player_pos': player_pos},to=sid)
+                if output or player_pos or partystatus:
+                    
+                    if partystatus:
+                        socketio.emit('output',{'output':output, 'player_pos': player_pos, 'stat':partystatus,} ,to=sid)
+                        partystatus = {} #partystatus without anything would demolish it.
+                    else:
+                        socketio.emit('output',{'output':output, 'player_pos': player_pos},to=sid)
                 output = ""
                 player_pos = None
                 chunk = await asyncio.wait_for(reader.read(2048), timeout=0.25)
@@ -191,7 +181,12 @@ async def process_session(sid,reader,writer):
                        gmcp_buffer.append(b)
                        if b == 0xF0:
                             if gmcp_buffer.startswith(b'\xc9Party.Info'):
-                               pass #TODO (statuswindow)
+                                partydata = orjson.loads(gmcp_buffer[11:-2])
+                                partystatus = {}
+                                if "members" in partydata:
+                                    for m in partydata["members"]:
+                                        if m["row"] in [1,2,3]: #not sending offslots (-,-)
+                                            partystatus[f"{m["row"]}{m["col"]}"] = [m["hp"],m["sp"],m["ep"]]
                             elif gmcp_buffer.startswith(b'\xc9Room.Info'):
                                 
                                 try:
@@ -218,7 +213,7 @@ async def process_session(sid,reader,writer):
                 print("connection error:",e)
         
 
-
+        
         monster = False
 
         container = {"og" : og_data}        
@@ -231,79 +226,99 @@ async def process_session(sid,reader,writer):
             await parse_command(sid,result,container)    
         output += container["og"].decode(FORMAT, errors='ignore')
 
-        
-
 async def parse_command(sid,initial_commands, data ={}):
-    seen = set()
-    stack = deque()
-    
-    if not isinstance(initial_commands, list):
-        initial_commands = [initial_commands]
+    try:
+        seen = set()
+        stack = deque()
 
-    stack.extend(initial_commands)
-    
-    while stack:
-        comm = stack.popleft()
-        if isinstance(comm,list):
-            stack.extendleft(reversed(comm))
-            continue
-        if comm in alias.alias_list:
-            if comm not in seen:
-                print(alias.alias_list[comm])
-                stack.appendleft(alias.alias_list[comm])
-                seen.add(comm)
+        if not isinstance(initial_commands, list):
+            initial_commands = [initial_commands]
+
+        stack.extend(initial_commands)
+
+        while stack:
+            comm = stack.popleft()
+            if isinstance(comm,list):
+                stack.extendleft(reversed(comm))
                 continue
-            
-        if comm[0] != "#":
-            
-            writer = mud_connections[sid]['writer']
-            writer.write((comm+"\n").encode(FORMAT))
-            await writer.drain()
-            
-            continue
-            
-        cmd_prefix = comm[1:3].lower() #no len check here but will do try,catch
-        #
-        # alias
-        #
-        if cmd_prefix == 'al':
-            _,name,*tokens = comm.split()
-            if tokens:
-                value = " ".join(tokens)
-            elif stack:
-                value = stack.popleft()
-            alias.alias_list[name] = value
-            
-        #
-        # gag
-        
-        elif cmd_prefix == 'ga':
-            data["og"] = b''
-        #
-        # nothing
-        
-        elif cmd_prefix == 'no':
-            print("NOPE NOPE")
-            pass
-        #
-        # color
-        
-        elif cmd_prefix == "cw":
-            if not data:
+            if comm in alias.alias_list:
+                if comm not in seen:
+                    stack.appendleft(alias.alias_list[comm])
+                    seen.add(comm)
+                    continue
+                
+            if comm[0] != "#":
+                writer = mud_connections[sid]['writer']
+                writer.write((comm+"\n").encode(FORMAT))
+                await writer.drain()    
                 continue
-            _,color = comm.split(" ", 1)
-            if color and color in trig.COLORS:
-                colored = trig.COLORS[color] + data["text_data"] + trig.COLORS["reset"]+"\n"
-                data["og"] = colored.encode(FORMAT)
+            if len(comm) < 4:
+                continue
 
+            cmd_prefix = comm[1:3].lower()
+            #
+            # alias
+            #
+            if cmd_prefix == 'al':
+                _,name,*tokens = comm.split()
+                if tokens:
+                    value = " ".join(tokens)
+                elif stack:
+                    value = stack.popleft()
+                alias.alias_list[name] = value
 
+            #
+            # gag
 
-@app.route("/")
-def index():
-    client_ip = request.remote_addr
-    if client_ip == HOST or client_ip.startswith('192'):
-        return render_template("index.jinja", fog="true", admin = "true")
-    return ""
+            elif cmd_prefix == 'ga':
+                data["og"] = b''
+            #
+            # nothing
+
+            elif cmd_prefix == 'no':
+                pass
+            #
+            # color
+
+            elif cmd_prefix == "cw":
+                if not data:
+                    continue
+                _,color = comm.split(" ", 1)
+                if color and color in trig.COLORS:
+                    colored = trig.COLORS[color] + data["text_data"] + trig.COLORS["reset"]+"\n"
+                    data["og"] = colored.encode(FORMAT)
+
+            elif cmd_prefix == "ma":
+                mapper.handleMovementInterruptions(sid,comm,data["text_data"])
+    except Exception as e:
+        print("somehow parsing triggers/suff all went wrong")
+
+async def send_msg(sid,msg):
+    try:
+        if len(msg) == 6 and msg == "RELOAD":
+            importlib.reload(alias)
+            importlib.reload(keybinds)
+            importlib.reload(trig)
+            importlib.reload(mapper.mazeslib)
+            print("RELOAD")
+            return
+        if len(msg) == 3 and msg in ['TAL','REC']:
+            socketio.emit('output',{'output':mapper.change_state(msg,sid)},to=sid)
+            return
+        
+        wrap = {"msg":msg} 
+        if mapper.mazes[sid]["mapper_state"] == "REC":
+            if mapper.checkInput(sid, wrap, socketio):
+                return
+            msg = wrap["msg"]
+            
+         
+
+        await parse_command(sid,msg)
+        
+    except Exception as e:
+        print("error while trying to send data to mud:",e)
+
 
 
 if __name__ == '__main__':
