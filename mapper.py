@@ -6,16 +6,14 @@ from extensions import db
 import re
 from models import Dawae,Rooms,Lines
 
-#global mazes for player
+#global mazes for player(s)
 mazes = {}
 
-# move modifiers to coordinates
+
 dictx = {'w' : -1, 'n': 0, 'e': 1, 's': 0, 'd': 0, 'u': 0, 'se':1,'sw':-1,'nw':-1,'ne':1}
 dicty = {'w' : 0, 'n': -1, 'e': 0, 's': 1, 'd': 0, 'u': 0, 'se':1,'sw':1,'nw':-1,'ne':-1}
 dictz = {'w' : 0, 'n': 0, 'e': 0, 's': 0, 'd': -1, 'u': 1, 'se':0,'sw':0,'nw':0,'ne':0}
-
-#
-# for calculating rooms actual value (how to draw as svg)
+default_planet = "aegi"
 dict_dirs = {'west' : 1, 'north': 2, 'east': 4, 'south': 8, 'down': 512, 'up': 256,
           'downstairs': 512, 'upstairs': 256,'se': 2097152,'sw':4194304,'nw':8388608,'ne':16777216,'se,': 2097152,
           'sw,':4194304,'nw,':8388608,'ne,':16777216,'southeast': 2097152,'southwest':4194304,'northwest':8388608,
@@ -24,14 +22,18 @@ dict_dirs = {'west' : 1, 'north': 2, 'east': 4, 'south': 8, 'down': 512, 'up': 2
           'leave,': 1024,'w' : 1, 'n': 2, 'e': 4, 's': 8, 'd': 512, 'u': 256, 'leave': 1024,
           'w,' : 1, 'n,': 2, 'e,': 4, 's,': 8, 'd,': 512, 'u,': 256,  'upstairs,': 256, 'leave,': 1024}
 
-default_planet = "aegi"
+
+
 #
 #   is mapper recording, following or off
+#
+
 def change_state(msg,sid):
     if not sid in mazes:
-        mazes[sid] = {"room_queue":queue.Queue(),"mapper_state":None, "planet": default_planet, "had_keys": False, "prev_id": None }
-        
+        mazes[sid] = {"room_queue":queue.Queue(),"mapper_state":None, "planet": default_planet, "had_keys": False, "prev_id": None, 'dae_lvl': 0, 'dae_default': 0}
+    
     maze = mazes[sid]
+    maze['wait_dae'] = 0
     with maze["room_queue"].mutex:maze["room_queue"].queue.clear()
     maze["mapper_state"] = msg if maze["mapper_state"] == None else None
     if not maze["mapper_state"]:
@@ -40,6 +42,7 @@ def change_state(msg,sid):
 
 #
 #   helper / first room out from queue to handle
+#
 def popRoom(maze):
     try:
         command,dirs = maze['room_queue'].get(timeout=0)
@@ -50,6 +53,7 @@ def popRoom(maze):
         
 #
 #   parse roominfo.gmcppacket
+#
 def parseRoomInfo(data,sid,socketio):
     try:
         
@@ -60,7 +64,9 @@ def parseRoomInfo(data,sid,socketio):
         
         maze = mazes[sid]
         ui_keys= []
-        
+        maze['monster'] = []
+        maze['wait_dae'] = 0
+
         prev_id = maze["prev_id"]
         
         new_id = int(roomdata["id"],16)
@@ -158,11 +164,12 @@ def parseRoomInfo(data,sid,socketio):
 
 #
 #   setup/change level
+#
 def setup_level(sid, new_planet, socketio, new_id = -1):
     try:
         global mazes
         if not sid in mazes:
-            mazes[sid] = {"room_queue":queue.Queue(),"mapper_state":None, "planet": default_planet, "had_keys": False, "prev_id": None }
+            mazes[sid] = {"room_queue":queue.Queue(),"mapper_state":None, "planet": default_planet, "had_keys": False, "prev_id": None, 'dae_lvl': 0, 'dae_default': 0, 'wait_dae': 0 }
         maze = mazes[sid]
         maze['dae_level'] = 0
         maze['dae_default'] = 0
@@ -210,13 +217,54 @@ def setup_level(sid, new_planet, socketio, new_id = -1):
 
 #
 #   If the mapper is in a state where it is recording input data, that data must be parsed for commands that modify the map and for tracking movement.
+#
 def checkInput(sid, wrap, socketio):
     msg = wrap["msg"]
+    
     global mazes
     if sid not in mazes:
         return False
     maze = mazes[sid]
-    if msg in ['n','s','e','w','nw','ne','sw','se','u','d']:
+    
+    if msg in ['l','look','glance']:
+        maze['monster'] = []
+        maze['wait_dae'] = 0
+    
+    #--- instructions from database to replace normal command. DA_out one layer just to get towards exit
+    elif msg == "DA_OUT":
+
+        if maze['z'] == 90 or maze['wait_dae'] == "blocking_out":
+            return True
+        maze['wait_dae'] = "blocking_out"
+
+        if maze['prev_id'] not in maze['da_out']:
+            return True
+        
+        wrap['msg'] = maze['da_out'][maze['prev_id']]
+    
+    #--- da_wae is paths inside mazes and always following the current nro path or bigger, if not then search of lower too.
+    elif msg == "DA_WAE":            
+        if maze['wait_dae'] == "blocking_dae":
+            return True
+        try:
+            maze['wait_dae'] = "blocking_dae"
+            way = [x for x in maze["da_wae"][maze["prev_id"]] if x[0]>=maze["dae_lvl"]]
+            if not way:
+                maze["dae_lvl"] = maze["dae_default"]
+                way = [x for x in maze["da_wae"][maze["prev_id"]] if x[0]>=maze["dae_lvl"]]
+            if not way:
+                return True
+            order = min(way,key=lambda x:x[0])
+            maze["dae_lvl"],command = order 
+            wrap['msg'] = command    
+        except Exception as e:
+            print("DA_WAE bug",e)
+            return True
+    
+    if maze['mapper_state'] != "REC":
+        return
+    
+    elif msg in ['n','s','e','w','nw','ne','sw','se','u','d']:
         maze["room_queue"].put((msg,msg))
 
     #--- instructions that the command goes to room_queue, removes the MSK from start.

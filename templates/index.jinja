@@ -100,7 +100,7 @@
             
 	        g.appendChild(rect)
 	        stat_svg.appendChild(g);
-            const key = `${mat_x}${mat_y}`;
+            const key = `${mat_y}${mat_x}`;
             hpelements[key] = [];spelements[key] = [];epelements[key] = [];
             for(let col = 0; col < cols; col++)
             {
@@ -369,17 +369,17 @@
             Object.keys(hpelements).forEach(key => {hpelements[key][0].parentElement.style.display = (keys.includes(key)) ? "block" : "none";});
             keys.forEach(key => {
                 hpelements[key].forEach((c,i) => {
-                    const shouldShow = data.stat[key][0] > 7.14 * i;
+                    const shouldShow = data.stat[key][0] > 7.5 * i;
                     c.classList.toggle("fade-in", shouldShow);
                     c.classList.toggle("fade-out-red", !shouldShow);
 			    });
                 spelements[key].forEach((c,i) => {
-                    const shouldShow = data.stat[key][1] > 7.14 * i;
+                    const shouldShow = data.stat[key][1] > 7.5 * i;
                     c.classList.toggle("fade-in", shouldShow);
                     c.classList.toggle("fade-out", !shouldShow);
 			    });
                 epelements[key].forEach((c,i) => {
-                    const shouldShow = data.stat[key][2] > 7.14 * i;
+                    const shouldShow = data.stat[key][2] > 7.5 * i;
                     c.classList.toggle("fade-in", shouldShow);
                     c.classList.toggle("fade-out", !shouldShow);
 			    });

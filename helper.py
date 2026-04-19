@@ -1,4 +1,5 @@
-# file containing scripts for database creation and management, so tasks don’t have to be executed manually from the console
+# file containing scripts for database creation and management,
+# 
 import click
 from game import app
 from extensions import db

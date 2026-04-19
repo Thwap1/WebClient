@@ -37,8 +37,9 @@ HEADER = 64000
 ICEPORT = 4000
 
 HOST = socket.gethostbyname(socket.gethostname())
-
-# ---- global dedicated asyncio loop thread ---
+#
+#  global dedicated asyncio loop thread 
+#
 mud_loop = asyncio.new_event_loop()
 def start_mud_loop():
     asyncio.set_event_loop(mud_loop)
@@ -81,7 +82,11 @@ def disconnect_disconnect():
                 writer.close()
         except Exception as e:
                 print(f"closing connection error: {e}")
-   
+
+#
+# Handles incoming client messages from the Socket.IO event 'fkey'.
+# checks /alt/ctrl/shift and pics from saved keys what to forward to the 'send_msg'.
+# 
 @socketio.on('fkey')
 def fkey(data):
     sid = request.sid
@@ -103,6 +108,10 @@ def fkey(data):
                 for msg in keybinds.KeyDownActions[fkey]:
                    asyncio.run_coroutine_threadsafe(send_msg(sid,msg),mud_loop)
 
+#
+# Handles incoming client messages from the Socket.IO event 'msg'.
+# Forwards non-empty messages to the 'send_msg'.
+# 
 @socketio.on('msg')
 def msg(data):
     sid = request.sid
@@ -111,10 +120,18 @@ def msg(data):
             asyncio.run_coroutine_threadsafe(send_msg(sid,data["msg"]),mud_loop)
 
 
+#
+# Establish and run a single MUD session.
+# Opens a TCP connection to the configured MUD server
+#    
+       
 async def mud_session(sid):
     reader, writer = await asyncio.open_connection(ICEHOST, ICEPORT)
     await process_session(sid, reader, writer)
 
+#
+#  core loop function responsible for retrieving and processing data from the MUD server
+#
 async def process_session(sid,reader,writer):
     mud_connections[sid] = {"reader": reader,"writer": writer}
     
@@ -128,6 +145,7 @@ async def process_session(sid,reader,writer):
     text_buffer = bytearray() 
     gmcp_buffer = bytearray()
     output=""
+    
     player_pos = None
     while True:
         og_data=b""
@@ -152,7 +170,7 @@ async def process_session(sid,reader,writer):
                         socketio.emit('output',{'output':output, 'player_pos': player_pos},to=sid)
                 output = ""
                 player_pos = None
-                chunk = await asyncio.wait_for(reader.read(2048), timeout=0.25)
+                chunk = await asyncio.wait_for(reader.read(4092), timeout=0.25)
                 if not chunk:
                     raise asyncio.CancelledError
                 
@@ -214,13 +232,15 @@ async def process_session(sid,reader,writer):
         
 
         
-        monster = False
+        
 
         container = {"og" : og_data}        
         container["text_data"] = ansi_escape.sub('',og_data.decode(FORMAT, errors='ignore').strip())
 
         if og_data.startswith(b'\033['):
-            monster = trig.match_color_start(container) #this will manipulate container "og" (only colors)
+            if monster := trig.match_color_start(container):
+                if monster in mapper.mazes[sid]:
+                    mapper.mazes[sid]['monster'].append(monster)
 
         if result:= trig.match_trigger_start_end(container["text_data"]):
             await parse_command(sid,result,container)    
@@ -269,7 +289,7 @@ async def parse_command(sid,initial_commands, data ={}):
 
             #
             # gag
-
+            #
             elif cmd_prefix == 'ga':
                 data["og"] = b''
             #
@@ -307,9 +327,11 @@ async def send_msg(sid,msg):
             return
         
         wrap = {"msg":msg} 
-        if mapper.mazes[sid]["mapper_state"] == "REC":
+        
+        if mapper.mazes[sid]["mapper_state"]:    
             if mapper.checkInput(sid, wrap, socketio):
                 return
+            
             msg = wrap["msg"]
             
          
