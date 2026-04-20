@@ -229,6 +229,9 @@ def checkInput(sid, wrap, socketio):
     if msg in ['l','look','glance']:
         maze['monster'] = []
         maze['wait_dae'] = 0
+
+    if not maze['mapper_state']:
+        return False
     
     #--- instructions from database to replace normal command. DA_out one layer just to get towards exit
     elif msg == "DA_OUT":

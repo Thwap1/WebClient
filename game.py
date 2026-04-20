@@ -16,6 +16,12 @@ import importlib
 from collections import deque
 import re
 import trig
+m_func = None
+if importlib.util.find_spec("extra") is not None:
+    from extra import monsterappend
+    m_func = monsterappend
+
+   
 #  flask logging config 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
@@ -238,9 +244,13 @@ async def process_session(sid,reader,writer):
         container["text_data"] = ansi_escape.sub('',og_data.decode(FORMAT, errors='ignore').strip())
 
         if og_data.startswith(b'\033['):
-            if monster := trig.match_color_start(container):
-                if monster in mapper.mazes[sid]:
-                    mapper.mazes[sid]['monster'].append(monster)
+            if (monster := trig.match_color_start(container)):
+                
+                if sid in mapper.mazes:
+                    if "monster" in mapper.mazes[sid]:
+                       mapper.mazes[sid]['monster'].append(monster)
+                       if m_func:
+                           m_func(sid)
 
         if result:= trig.match_trigger_start_end(container["text_data"]):
             await parse_command(sid,result,container)    
@@ -327,12 +337,10 @@ async def send_msg(sid,msg):
             return
         
         wrap = {"msg":msg} 
-        
-        if mapper.mazes[sid]["mapper_state"]:    
-            if mapper.checkInput(sid, wrap, socketio):
-                return
-            
-            msg = wrap["msg"]
+        if mapper.checkInput(sid, wrap, socketio):
+            return
+
+        msg = wrap["msg"]
             
          
 
