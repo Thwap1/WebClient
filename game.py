@@ -99,10 +99,8 @@ def fkey(data):
     if sid in mud_connections:
         if data["fkey"]:
             fkey = data["fkey"]
-            if fkey in keybinds.override_dicts and mapper.mazes[sid]["prev_id"] and mapper.mazes[sid]["prev_id"] in keybinds.override_dicts[fkey]:
-                for msg in keybinds.override_dicts[fkey][mapper.mazes[sid]["prev_id"]][1:]:   
-                     asyncio.run_coroutine_threadsafe(send_msg(sid,msg),mud_loop)
-            elif data["ctrl"]:
+            
+            if data["ctrl"]:
                 if fkey in keybinds.CtrlKeyDownActions:
                     for msg in keybinds.CtrlKeyDownActions[fkey]:
                         asyncio.run_coroutine_threadsafe(send_msg(sid,msg),mud_loop)
@@ -110,6 +108,11 @@ def fkey(data):
                 if fkey in keybinds.AltKeyDownActions:
                     for msg in keybinds.AltKeyDownActions[fkey]:
                          asyncio.run_coroutine_threadsafe(send_msg(sid,msg),mud_loop)
+                         
+            if mapper.mazes[sid]["prev_id"] in keybinds.key_binds and fkey in keybinds.key_binds[mapper.mazes[sid]["prev_id"]]:
+                for msg in keybinds.key_binds[mapper.mazes[sid]["prev_id"]][fkey][1:]:   
+                     asyncio.run_coroutine_threadsafe(send_msg(sid,msg),mud_loop)
+
             elif fkey in keybinds.KeyDownActions:
                 for msg in keybinds.KeyDownActions[fkey]:
                    asyncio.run_coroutine_threadsafe(send_msg(sid,msg),mud_loop)

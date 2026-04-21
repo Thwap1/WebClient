@@ -75,10 +75,11 @@ def parseRoomInfo(data,sid,socketio):
         
         
         # ---- keybindings from location to UI ---
-        for dict in keybinds.override_dicts:
-            if new_id in keybinds.override_dicts[dict]:
-                ui_keys.append(f"{dict} {keybinds.override_dicts[dict][new_id][0]}")
-
+        
+        if new_id in keybinds.key_binds:
+            for key in keybinds.key_binds[new_id]:
+              ui_keys.append(f"{key} {keybinds.key_binds[new_id][key][0]}")
+        print(ui_keys)
         # ---- send / clear keys 
         if ui_keys or maze["had_keys"]:
             socketio.emit('walk_keys',ui_keys,to=sid)

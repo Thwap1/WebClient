@@ -266,3 +266,5 @@ load_trig_start()
 load_monster()
 
 
+
+
