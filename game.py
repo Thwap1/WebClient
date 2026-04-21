@@ -340,8 +340,9 @@ async def send_msg(sid,msg):
             return
         
         wrap = {"msg":msg} 
-        if mapper.checkInput(sid, wrap, socketio):
-            return
+        with app.app_context():   
+            if mapper.checkInput(sid, wrap, socketio):
+                return
 
         msg = wrap["msg"]
             

@@ -9,7 +9,7 @@ AltKeyDownActions = {
 
 KeyDownActions = {
     "Numpad1": ["sw"],"Numpad2": ["s"],"Numpad3": ["se"],"Numpad4": ["w"],"Numpad5": ["look"],
-    "Numpad6": ["e"],"Numpad7": ["nw"],"Numpad8": ["n"],"Numpad9": ["ne"],"NumpadAdd": ["mome_","temu"],"NumpadSubtract": ["DA_WAE"],
+    "Numpad6": ["e"],"Numpad7": ["nw"],"Numpad8": ["n"],"Numpad9": ["ne"],"NumpadAdd": ["mome_","temu","x all"],"NumpadSubtract": ["DA_WAE"],
     "NumpadDivide":["DA_OUT"]}
 
 #
@@ -40,51 +40,22 @@ key_binds={
                   'F8':["Rift","nw","2 n","7 e","ne","4 w"],       
 }, 2559517210: {  'F6':["makkis","ne","n","2 ne","3 n","nw","4 n","2 ne","n","2 ne","3 n","3 nw","w","nw","2 w","2 nw","2 n","nw","n","nw","4 n","nw","3 n","2 ne","3 n","3 ne","n","ne","n","4 ne","n","ne","4 n","7 ne","5 nw","3 ne","6 e","17 ne","7 n","12 ne","16 n","23 ne","21 n","11 ne","14 e","3 ne","5 n"],
                   'F7':["Klore","ne","n","2 ne","3 n","nw","4 n","2 ne","n","2 ne","3 n","3 nw","w","nw","2 w","2 nw","2 n","nw","n","nw","4 n","nw","3 n","2 ne","3 n","3 ne","n","ne","n","4 ne","n","ne","4 n","7 ne","22 e","3 ne","e","2 ne","3 n","2 ne","n","ne","2 n"],
+                  'Numpad5':["Path","path"],
 }, 2478180382: {  'F7':["Bank","2 u","2 e","2 s","2 e","2 s","3 w","sell noeq","e","2 n","2 w","sell noeq","3 e","2 n","dep"],
-}, 2335991698: { 'F8' :["Bank","out","road","road","12 e","6 se","3 s","3 se","5 e","se","3 e","se","4 e","ne","e","2 ne","3 e","n","2 e","3 s","4 e","2 s","3 w","sell noeq","e","2 n","2 w","sell noeq","3 e","2 n","dep"],
-}, 3037593790: { 'F8' :["Bank","12 e","6 se","3 s","3 se","5 e","se","3 e","se","4 e","ne","e","2 ne","3 e","n","2 e","3 s","4 e","2 s","3 w","sell noeq","e","2 n","2 w","sell noeq","3 e","2 n","dep"],
-}, 3311899503: { 'F8' :['sell',"get glows","3 get armours","3 get weapons","se","ne","n","2 ne","3 n","nw","4 n","2 ne","n","2 ne","3 n","3 nw","w","nw","2 w","2 nw","2 n","nw","n","nw","4 n","nw","3 n","2 ne","3 n","3 ne","n","ne","n","4 ne","n","ne","4 n","7 ne","22 e","10 se","17 e","ride dismount","7 e","ne","3 n","ne","5 n","3 ne","nw","12 w","sell noeq","3 e","ne","nw","6 w","sell noeq","6 e","2 se","11 e","4 se","e","dep","w","2 s","3 sw","3 w","sw","s","sw","2 w","2 sw","7 w","ride morty","17 w","10 nw","22 w","7 sw","4 s","sw","s","4 sw","s","sw","s","3 sw","3 s","2 sw","3 s","se","4 s","se","s","se","2 s","2 se","2 e","se","e","3 se","3 s","2 sw","s","2 sw","4 s","se","3 s","2 sw","s","sw","nw"],
+}, 2335991698: {  'F8':["Bank","out","road","road","12 e","6 se","3 s","3 se","5 e","se","3 e","se","4 e","ne","e","2 ne","3 e","n","2 e","3 s","4 e","2 s","3 w","sell noeq","e","2 n","2 w","sell noeq","3 e","2 n","dep"],
+}, 3037593790: {  'F8':["Bank","12 e","6 se","3 s","3 se","5 e","se","3 e","se","4 e","ne","e","2 ne","3 e","n","2 e","3 s","4 e","2 s","3 w","sell noeq","e","2 n","2 w","sell noeq","3 e","2 n","dep"],
+}, 3311899503: {  'F8':['sell',"get glows","3 get armours","3 get weapons","se","ne","n","2 ne","3 n","nw","4 n","2 ne","n","2 ne","3 n","3 nw","w","nw","2 w","2 nw","2 n","nw","n","nw","4 n","nw","3 n","2 ne","3 n","3 ne","n","ne","n","4 ne","n","ne","4 n","7 ne","22 e","10 se","17 e","ride dismount","7 e","ne","3 n","ne","5 n","3 ne","nw","12 w","sell noeq","3 e","ne","nw","6 w","sell noeq","6 e","2 se","11 e","4 se","e","dep","w","2 s","3 sw","3 w","sw","s","sw","2 w","2 sw","7 w","ride morty","17 w","10 nw","22 w","7 sw","4 s","sw","s","4 sw","s","sw","s","3 sw","3 s","2 sw","3 s","se","4 s","se","s","se","2 s","2 se","2 e","se","e","3 se","3 s","2 sw","s","2 sw","4 s","se","3 s","2 sw","s","sw","nw"],
+}, 3217275705: {  'Numpad6': ['Tent','enter tent'], 
+                  'Numpad8': ['Wall','climb wall'],
+}, 1282588022: {  'Numpad4': ['Out','out'],
+}, 2594813408: {  'Numpad8': ['Climb','climb grayish spruce'],
+}, 3044815192: {  'Numpad2': ['Down','d'],
+}, 1266008367: {  'Numpad8': ['Inhale','inhale mist'],
+}, 590069385:  {  'Numpad2': ['Inhale','inhale mist'],
+}, 3636149278: {  'Numpad6': ['Shack','shack']
+}, 2267176582: {  'Numpad4': ['Out','out']
+}, 2752659316: {  'Numpad8': ['Bush','move bush','n']
+}, 1901731623: {  'Numpad2': ['Woods','woods']
 },
-      }
- 
-
-N5 = {590069385: ["inhale mist","inhale mist"],
-      1266008367: ["inhale mist","inhale mist"],
-      998072376: ["path","path"],
-      2559517210: ["path","path"],
-      1650122953: ["tent","tent"],
-      3931898241: ["out","out"],
-      3636149278: ["shack","shack"],
-      2267176582: ["out","out"],
-      3217275705: ["cgs","climb wall","nw","ne","climb grayish spruce"],
-      2594813408: ["spruce","climb grayish spruce"],
-      98455397: ["wall","climb wall"],
-      2954911565:["enter","enter"],
-      2876556050:["clearing","clearing"],
-      2112035669:["shadow","shadow"],
-      998558371:["out","out"],
-      2752659316:["move bush","move bush"],
-      1121296739: ["kneel","kneel before statue","go north"],
-      3343936398:["in","in"],  
-      758893895: ["upstairs","upstairs"],
-      463730410: ["upstairs","upstairs"],
-      2601185447: ["upstairs","upstairs"],
-      2498984393: ["house","house" ],
-      4182202616:["steps","steps"],
-      4139973774:["search eastern wall","search eastern wall"],
-      3587847651:["altar pray","altar_pray sriel"],
-      4292332140:["engrave","engrave lhundaer"],
-      }
-N8 = {
-    4292332140:["waterfall","waterfall","d"],
-    }
-N2 = {
-    3343936398: ["gates","gates"],
-    463730410:["downstairs","downstairs"],
-    2601185447:["downstairs","downstairs"],
-    2309636238:["downstairs","downstairs"],
-    758893895:["out","out"],
-    1901731623:["woods","woods"],
-    1088377170:["waterfall","waterfall"]
 }
-
+ 

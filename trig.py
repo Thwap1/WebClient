@@ -200,6 +200,7 @@ mapper_remove_dirs = [
     "You can't flee to:::#MAP_1",]
 mapper_remove_end = {
     "blocks your way.:::#MAP_1",
+    "blocks your way to east.:::#MAP_1",
 }
 
 def load_trig_start(): 

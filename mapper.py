@@ -109,7 +109,7 @@ def parseRoomInfo(data,sid,socketio):
             maze["y"] = maze["dungeon"][new_id]["y"]
             maze["z"] = maze["dungeon"][new_id]["z"]
             popRoom(maze)
-            
+            return
         
         if maze["mapper_state"] != "REC":
             return
@@ -301,7 +301,7 @@ def checkInput(sid, wrap, socketio):
             socketio.emit('map', {'clear':False, 'lines':[newline]}, to = sid)
             return True
         except Exception as e:
-            print("error making svg line:",e)
+            print("error making svg line:",e,dy,dx)
             return True
     
 #
