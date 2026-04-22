@@ -56,6 +56,6 @@ key_binds={
 }, 2267176582: {  'Numpad4': ['Out','out']
 }, 2752659316: {  'Numpad8': ['Bush','move bush','n']
 }, 1901731623: {  'Numpad2': ['Woods','woods']
-},
+}, 4139973774: {  'Numpad6': ['Search','search eastern wall','e']}
 }
  

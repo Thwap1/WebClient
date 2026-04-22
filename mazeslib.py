@@ -17,7 +17,8 @@ coord_to_id = {
     
 }
  
-bases ={     1598473154:    {"x":511,"y":500, 'id':511500, 'in_cmd':'forest', 'name':'Snowrise'},
+bases ={     
+             1598473154:    {"x":511,"y":500, 'id':511500, 'in_cmd':'forest', 'name':'Snowrise'},
              3618451580:    {"x":510,"y":499, 'id':511500, 'in_cmd':'forest', 'name':'Snowrise'}, 
              1338113021:    {"x":511,"y":498, 'id':511500, 'in_cmd':'forest', 'name':'Snowrise'}, 
              351668311:     {"x":512,"y":499, 'id':511500, 'in_cmd':'forest', 'name':'Snowrise'},
