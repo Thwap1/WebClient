@@ -199,6 +199,7 @@ mapper_remove_dirs = [
     "The door is locked.:::#MAP_1",
     "You can't flee to:::#MAP_1",]
 mapper_remove_end = {
+    
     "blocks your way.:::#MAP_1",
     "blocks your way to east.:::#MAP_1",
 }

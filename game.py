@@ -100,18 +100,19 @@ def fkey(data):
         if data["fkey"]:
             fkey = data["fkey"]
             
-            if data["ctrl"]:
-                if fkey in keybinds.CtrlKeyDownActions:
-                    for msg in keybinds.CtrlKeyDownActions[fkey]:
-                        asyncio.run_coroutine_threadsafe(send_msg(sid,msg),mud_loop)
-            elif data["alt"]:
-                if fkey in keybinds.AltKeyDownActions:
-                    for msg in keybinds.AltKeyDownActions[fkey]:
-                         asyncio.run_coroutine_threadsafe(send_msg(sid,msg),mud_loop)
+            if data["ctrl"] and fkey in keybinds.CtrlKeyDownActions:
+                for msg in keybinds.CtrlKeyDownActions[fkey]:
+                    asyncio.run_coroutine_threadsafe(send_msg(sid,msg),mud_loop)
+                    
+            elif data["alt"] and fkey in keybinds.AltKeyDownActions:
+                for msg in keybinds.AltKeyDownActions[fkey]:
+                    asyncio.run_coroutine_threadsafe(send_msg(sid,msg),mud_loop)
+                    
                          
-            if mapper.mazes[sid]["prev_id"] in keybinds.key_binds and fkey in keybinds.key_binds[mapper.mazes[sid]["prev_id"]]:
+            elif mapper.mazes[sid]["prev_id"] in keybinds.key_binds and fkey in keybinds.key_binds[mapper.mazes[sid]["prev_id"]]:
                 for msg in keybinds.key_binds[mapper.mazes[sid]["prev_id"]][fkey][1:]:   
                      asyncio.run_coroutine_threadsafe(send_msg(sid,msg),mud_loop)
+              
 
             elif fkey in keybinds.KeyDownActions:
                 for msg in keybinds.KeyDownActions[fkey]:
@@ -324,7 +325,7 @@ async def parse_command(sid,initial_commands, data ={}):
             elif cmd_prefix == "ma":
                 mapper.handleMovementInterruptions(sid,comm,data["text_data"])
     except Exception as e:
-        print("somehow parsing triggers/suff all went wrong")
+        print("somehow parsing triggers/suff all went wrong:",e)
 
 async def send_msg(sid,msg):
     try:

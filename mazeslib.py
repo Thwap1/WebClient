@@ -37,6 +37,10 @@ bases ={
             
             3884918113: {"x":410,"y":245, 'id':410245, 'in_cmd':'enter', 'name':'Citadel of Zephyrs'},
             2629194218: {"x":248,"y":446, 'id':248446, 'in_cmd':'enter', 'name':'Cloud City'},
+            625201778: {"x":959,"y":879, 'id':959879, 'in_cmd':'enter', 'name':'Passage'},
+            1072175094: {"x":1004,"y":300, 'id':1004300, 'in_cmd':'tavern', 'name':'Tavern'},
+            3590922977: {"x":1085,"y":490, 'id':1085490, 'in_cmd':'s', 'name':'Graemor'},
+            136065447: {"x":481,"y":574, 'id':481574, 'in_cmd':'path', 'name':'Nambeg'},
 
     }
     

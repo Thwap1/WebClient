@@ -34,7 +34,9 @@ def change_state(msg,sid):
     
     maze = mazes[sid]
     maze['wait_dae'] = 0
-    with maze["room_queue"].mutex:maze["room_queue"].queue.clear()
+    with maze["room_queue"].mutex:
+        maze["room_queue"].queue.clear()
+    
     maze["mapper_state"] = msg if maze["mapper_state"] == None else None
     if not maze["mapper_state"]:
         return f">> MAPPER OFF >>\n"
@@ -79,7 +81,7 @@ def parseRoomInfo(data,sid,socketio):
         if new_id in keybinds.key_binds:
             for key in keybinds.key_binds[new_id]:
               ui_keys.append(f"{key} {keybinds.key_binds[new_id][key][0]}")
-        print(ui_keys)
+        
         # ---- send / clear keys 
         if ui_keys or maze["had_keys"]:
             socketio.emit('walk_keys',ui_keys,to=sid)
@@ -139,10 +141,17 @@ def parseRoomInfo(data,sid,socketio):
 
         
         if maze["autodao"]: # ----- Dao is "way out in some mazes its just easy to bind it to where you came". 
-            if (dir_out := {'nw':'se','ne':'sw','se':'nw','sw':'ne','e':'w','w':'e','s':'n','n':'s','u':'d','d':'u'}.get(dirs,None)):
-                    maze['da_out'][new_id] = dir
-                    way_out = Dawae(da_nro=-1 , lvl=maze["level_id"],id = new_id, da_wae = dir_out)
-                    db.session.merge(way_out)
+            
+            if (dir_out := {'enter':'leave','nw':'se','ne':'sw','se':'nw','sw':'ne','e':'w','w':'e','s':'n','n':'s','u':'d','d':'u'}.get(dirs,None)):
+                    print("AUTODAO")
+                    try:
+                        maze['da_out'][new_id] = dir_out
+                        way_out = Dawae(da_nro=-1 , lvl=maze["level_id"],id = new_id, da_wae = dir_out)
+                        db.session.merge(way_out)
+                        db.session.commit()
+                    except Exception as e:
+                        print("autodao",e)
+        
         
         new_room =  Rooms(id = new_id, lvl = maze["level_id"], x=maze["x"], y=maze["y"], z=maze["z"], value=room_value)
         db.session.merge(new_room)
@@ -208,9 +217,9 @@ def setup_level(sid, new_planet, socketio, new_id = -1):
                 maze["da_out"][daw.id] = daw.da_wae
             else:
                 if daw.id not in maze["da_wae"]:
-                    maze["da_wae"][daw.id] = [(daw.da_nro,daw.da_wae)]
-                else:
-                    maze["da_wae"][daw.id].append((daw.da_nro,daw.da_wae))
+                    maze["da_wae"][daw.id] = {}
+                maze["da_wae"][daw.id][daw.da_nro] = daw.da_wae
+                
         socketio.emit('map', {'clear':True,'rooms':list(maze["dungeon"].values()), 'lines':maze["svg_lines"]}, to = sid)
     except Exception as error:
         print(f'setup error:{error}')
@@ -252,15 +261,20 @@ def checkInput(sid, wrap, socketio):
             return True
         try:
             maze['wait_dae'] = "blocking_dae"
-            way = [x for x in maze["da_wae"][maze["prev_id"]] if x[0]>=maze["dae_lvl"]]
-            if not way:
+            
+            #-- get_keys_at_or_above level
+            keys = [k for k in maze["da_wae"][maze["prev_id"]] if k >= maze["dae_lvl"]]
+            if not keys:
+            #-- revert to default
                 maze["dae_lvl"] = maze["dae_default"]
-                way = [x for x in maze["da_wae"][maze["prev_id"]] if x[0]>=maze["dae_lvl"]]
-            if not way:
+                keys = [k for k in maze["da_wae"][maze["prev_id"]] if k >= maze["dae_lvl"]]
+            if not keys:
                 return True
-            order = min(way,key=lambda x:x[0])
-            maze["dae_lvl"],command = order 
-            wrap['msg'] = command    
+            #-- pick smallest viable key
+            key = min(keys)
+            maze["dae_lvl"] = key
+            #-- fetch message
+            wrap['msg'] = maze["da_wae"][maze["prev_id"]][key]
         except Exception as e:
             print("DA_WAE bug",e)
             return True
@@ -276,6 +290,67 @@ def checkInput(sid, wrap, socketio):
         command,dirs = msg[4:].strip().strip().rsplit(" ", 1)
         maze['room_queue'].put((command,dirs))
         wrap['msg'] = command
+
+    #--- defining path towards exit.
+    elif msg[0:3]== "DAO":
+        try:
+            command = msg[4:]
+            maze['da_out'][maze["prev_id"]] = command
+            wrap['msg'] = command
+            r = Dawae(da_nro = -1 ,lvl = maze["level_id"], id = maze["prev_id"],da_wae = command)
+            db.session.merge(r)
+            db.session.commit()
+        
+            
+        except Exception as e:
+            print("DAO error:",e)
+            return
+        
+    #--- to defining paths to wander around
+    elif msg[0:3]== "DAE":
+        #--- where keys start.
+        if msg[3:4] == "B":
+            maze["dae_default"] = (maze["dae_default"]+1000)%5000
+            maze["dae_lvl"] = maze["dae_default"]
+            return f'default:{maze["dae_default"]}'
+        
+        if msg[3:4] == "A":
+            maze["dae_lvl"] = maze["dae_lvl"] + 5
+            return f'>>{maze["dae_lvl"]}'
+        
+        #-- manually set key to something  
+        if re.search("^DAE(\\d+)",msg):
+            maze["dae_lvl"] = int(msg[3:])
+            return f'>>{maze["dae_lvl"]}'
+            
+        command = msg[4:]       
+
+        if not command:
+            return True
+        
+        dae = maze["da_wae"].get(maze["prev_id"])
+
+        if not dae:
+            maze["da_wae"][maze["prev_id"]] = {maze["dae_lvl"]:command}
+        else:
+            dae[maze["dae_lvl"]] = command        
+
+        db.session.merge(Dawae(id=maze["prev_id"],da_wae=command,da_nro=maze["dae_lvl"],lvl=maze["level_id"]))
+        db.session.commit()
+        wrap['msg'] = command
+
+    #--- remove one room
+    elif len(msg) == 6 and msg[0:6] == "REMOVE":
+        if maze["prev_id"] in maze["dungeon"] :
+            
+            remove = maze["dungeon"].pop(maze["prev_id"])
+            room = Rooms.query.filter_by(id = maze["prev_id"]).first()
+            if room:
+                db.session.delete(room)
+                db.session.commit()        
+            #socketio.emit('remove',{"data":[remove]},to=sid)
+        return True
+    
     #--- destroy existing maze
     elif msg in ["NUKEMAZE123"]:
         for table in [Rooms,Dawae,Lines]:
@@ -316,15 +391,15 @@ def handleMovementInterruptions(sid,command,data):
         if q.empty():
             return
         if command == "#MAP_1": #remove one
-            
             q.get(timeout=0)
         elif command == "#MAP_A": #remove all
-            
+        
             with q.mutex:q.queue.clear()
         elif command == "#MAP_F": #keep first remove all others
-            first = queue.get(timeout=0)
+        
+            first = q.get(timeout=0)
             with q.mutex:q.queue.clear()
-            queue.put(first)
+            q.put(first)
         elif "#MAP_COORDS":
             if re.search(r'^Your current coordinates are x = (\d+), y = (\d+)\.$', data):
                  my_x,my_y = re.findall(r'\b\d+[.,]', data)

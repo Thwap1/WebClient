@@ -8,7 +8,7 @@ AltKeyDownActions = {
     "Numpad6": ["DAO e"],"Numpad7": ["DAO nw"],"Numpad8": ["DAO n"],"Numpad9": ["DAO ne"]}    
 
 KeyDownActions = {
-    "Numpad1": ["sw"],"Numpad2": ["s"],"Numpad3": ["se"],"Numpad4": ["w"],"Numpad5": ["look"],
+    "Numpad1": ["sw",],"Numpad2": ["s"],"Numpad3": ["se"],"Numpad4": ["w"],"Numpad5": ["look"],
     "Numpad6": ["e"],"Numpad7": ["nw"],"Numpad8": ["n"],"Numpad9": ["ne"],"NumpadAdd": ["mome_","temu","x all"],"NumpadSubtract": ["DA_WAE"],
     "NumpadDivide":["DA_OUT"]}
 
@@ -28,6 +28,8 @@ key_binds={
                   'F7':["Bank","2 e","2 n","w","2 n","5 w","sell noeq","e","2 n","2 w","sell noeq","3 e","2 n","dep"],
                   'F8':["inn","2 e","2 n","w","n","6 w","n","w","n","w","u"],
 }, 4170434472: {  'F4':["Sc","s","out","e","se","s","s","se","e","ne","e","2 se","4 e","5 se","4 e","5 se","s","5 se","3 s","3 se","10 sw","2 s","sw","16 w","3 sw","9 w","2 sw","21 w","3 sw","2 w","nw"],
+}, 1324508582: {  'F4':["Sc","out","e","se","s","s","se","e","ne","e","2 se","4 e","5 se","4 e","5 se","s","5 se","3 s","3 se","10 sw","2 s","sw","16 w","3 sw","9 w","2 sw","21 w","3 sw","2 w","nw"],
+                
 }, 1870850679: {  'F4':["Sc","s","se","e","ne","e","2 se","4 e","5 se","4 e","5 se","s","5 se","3 s","3 se","10 sw","2 s","sw","16 w","3 sw","9 w","2 sw","21 w","3 sw","2 w","nw"],
 }, 1499883109: {  'F4':["Sc","u","n","e","2 s","se","5 s","e"],
                   'F8':["Rift","u","n","e","s","6 e","s","e","2 s","2 w"],
@@ -53,9 +55,16 @@ key_binds={
 }, 1266008367: {  'Numpad8': ['Inhale','inhale mist'],
 }, 590069385:  {  'Numpad2': ['Inhale','inhale mist'],
 }, 3636149278: {  'Numpad6': ['Shack','shack']
+}, 98455397:   {  'Numpad2': ['Wall','climb wall']
 }, 2267176582: {  'Numpad4': ['Out','out']
+}, 1650122953: {  'Numpad4': ['Tent','tent']
 }, 2752659316: {  'Numpad8': ['Bush','move bush','n']
 }, 1901731623: {  'Numpad2': ['Woods','woods']
-}, 4139973774: {  'Numpad6': ['Search','search eastern wall','e']}
+}, 4139973774: {  'Numpad6': ['Search','search eastern wall','e'],
+}, 3931898241: {  'Numpad6': ['Out','out'],
+}, 463730410:  {  'Numpad6': ['Backroom','backroom'],
+}, 2734606472: {  'Numpad4': ['Bar','bar'],
+                
+}
 }
  
