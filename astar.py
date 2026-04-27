@@ -1,10 +1,8 @@
 from game import app
-from extensions import db
 from models import Lhun,Chto,Ayth,Infe,Sorc
-from extensions import db
 import heapq
 
-maps = {"chto": bytearray(550 * 550),"ayth": bytearray(550 * 550),"infe": bytearray(550 * 550),"sorc": bytearray(550 * 550)}
+maps = {"chto": bytearray(550 * 550),"ayth": bytearray(550 * 550),"infe": bytearray(550 * 550),"sorc": bytearray(550 * 550),"lhun": bytearray(550 * 550)}
 
 
 with app.app_context():
@@ -36,7 +34,6 @@ def walk_path(start,end,planet):
         if current == end:
             path = []
             while current != start:
-            
                 path.append(came_dir[current])
                 current = came_from[current]
             path.reverse()
@@ -55,3 +52,4 @@ def walk_path(start,end,planet):
             except Exception:
                 continue
 
+print(walk_path((30,30),(60,10),"lhun"))
