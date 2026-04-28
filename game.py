@@ -8,11 +8,13 @@ import logging
 import alias
 import orjson
 import mapper
+import astar
 from common import FORMAT
 from extensions import db
 from mapper import mazes
 import keybinds
 import importlib
+
 from collections import deque
 import re
 import trig
@@ -334,12 +336,23 @@ async def send_msg(sid,msg):
             importlib.reload(keybinds)
             importlib.reload(trig)
             importlib.reload(mapper.mazeslib)
+            
             print("RELOAD")
             return
         if len(msg) == 3 and msg in ['TAL','REC']:
             socketio.emit('output',{'output':mapper.change_state(msg,sid)},to=sid)
             return
-        
+        if len(msg) == 3 and msg == "wlk":
+            
+            
+            path = astar.walk_path((mapper.mazes[sid]['x'],mapper.mazes[sid]['y']),(keybinds.walk_to_xy),keybinds.walk_to_planet)
+            if path:
+                for move in path:
+                    writer = mud_connections[sid]['writer']
+                    writer.write((move+"\n").encode(FORMAT))
+                writer.write(("survey coordinates\n").encode(FORMAT))
+                await writer.drain()    
+            return
         wrap = {"msg":msg} 
         with app.app_context():   
             if mapper.checkInput(sid, wrap, socketio):

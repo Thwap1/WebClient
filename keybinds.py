@@ -1,3 +1,8 @@
+walk_to_planet= "lhun"    
+walk_to_xy = (410,245)
+walk_to_xy = (248,446)
+print(walk_to_xy)
+
 # Default keybindings provided by the client
 CtrlKeyDownActions = {
     "Numpad1": ["DAE sw"],"Numpad2": ["DAE s"],"Numpad3": ["DAE se"],"Numpad4": ["DAE w"],"Numpad5": ["look"],

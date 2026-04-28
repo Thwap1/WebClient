@@ -52,4 +52,4 @@ def walk_path(start,end,planet):
             except Exception:
                 continue
 
-print(walk_path((30,30),(60,10),"lhun"))
+#print(walk_path((30,30),(60,10),"lhun"))

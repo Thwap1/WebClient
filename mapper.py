@@ -244,6 +244,7 @@ def checkInput(sid, wrap, socketio):
         return False
     
     #--- instructions from database to replace normal command. DA_out one layer just to get towards exit
+
     elif msg == "DA_OUT":
 
         if maze['z'] == 90 or maze['wait_dae'] == "blocking_out":
@@ -387,7 +388,17 @@ def handleMovementInterruptions(sid,command,data):
         global mazes
         if not sid in mazes or not mazes[sid]["mapper_state"] or not mazes[sid]["room_queue"]:
             return
+        if command == "#MAP_COORDS":
+            if re.search(r'^Your current coordinates are x = (\d+), y = (\d+)\.$', data):
+                 print("COORDS!!")
+                 my_x,my_y = re.findall(r'\b\d+[.,]', data)
+                 print(my_x,my_y)
+                 mazes[sid]['x'],mazes[sid]['y'] = int(my_x[:-1]), int(my_y[:-1])
+
+
         q = mazes[sid]['room_queue']
+
+
         if q.empty():
             return
         if command == "#MAP_1": #remove one
@@ -400,11 +411,11 @@ def handleMovementInterruptions(sid,command,data):
             first = q.get(timeout=0)
             with q.mutex:q.queue.clear()
             q.put(first)
-        elif "#MAP_COORDS":
-            if re.search(r'^Your current coordinates are x = (\d+), y = (\d+)\.$', data):
-                 my_x,my_y = re.findall(r'\b\d+[.,]', data)
-                 mazes[sid]['x'],mazes[sid]['y'] = int(my_x[:-1]), int(my_y[:-1])
-                 
+            
+        
+        
+
+            
     except Exception as e:
         print("Error while handling movement interruptions",e)
     
