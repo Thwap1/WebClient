@@ -1,8 +1,18 @@
 walk_to_planet= "lhun"    
-walk_to_xy = (410,245)
 walk_to_xy = (248,446)
+walk_to_xy = (410,245)
+walk_to_xy = (20,25)
+
 walk_to_planet= "aegi"
 walk_to_xy = (947,332) 
+walk_to_xy = (850,633) #redwind
+walk_to_xy = (758,631) 
+walk_to_xy = (703,698) 
+walk_to_xy = (802,690) 
+walk_to_xy = (526,753) #w
+walk_to_xy = (898,750) #refugee
+walk_to_xy = (459,703) #w
+ 
 print(walk_to_xy)
 
 # Default keybindings provided by the client

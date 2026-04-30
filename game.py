@@ -343,10 +343,14 @@ async def send_msg(sid,msg):
         if len(msg) == 3 and msg in ['TAL','REC']:
             socketio.emit('output',{'output':mapper.change_state(msg,sid)},to=sid)
             return
+        if len(msg) == 3 and msg == "ccc":
+            astar.echo_test_location(mapper.mazes[sid]['x'],mapper.mazes[sid]['y'])
+            return
         if len(msg) == 3 and msg == "wlk":
             
             
             path = astar.walk_path((mapper.mazes[sid]['x'],mapper.mazes[sid]['y']),(keybinds.walk_to_xy),keybinds.walk_to_planet)
+            print(path)
             if path:
                 for move in path:
                     writer = mud_connections[sid]['writer']
