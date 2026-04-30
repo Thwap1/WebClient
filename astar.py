@@ -1,28 +1,48 @@
 from game import app
-from models import Lhun,Chto,Ayth,Infe,Sorc
+from models import Lhun,Chto,Ayth,Infe,Sorc,Owline
 import heapq
 
-maps = {"chto": bytearray(550 * 550),"ayth": bytearray(550 * 550),"infe": bytearray(550 * 550),"sorc": bytearray(550 * 550),"lhun": bytearray(550 * 550)}
+from common import maps
 
+def load():
+    with app.app_context():
+        try:
+            width = 550
+            for planet in maps:
+                mapdb = {"sorc":Sorc,"infe":Infe,"lhun":Lhun,"ayth":Ayth,"chto":Chto}.get(planet)
+                rows = mapdb.query.filter(mapdb.map_y.between(0, 529)).all()
+                for line in rows:
+                    index = 0
+                    row = int(line.map_y)*width
+                    for char in line.map_rivi:
+                        if char in [" ","#","V","^"]:
+                            maps[planet][row+index]=1
+                        index+=1
+            width = 950
+            maps['ow'] = bytearray(950*769)
 
-with app.app_context():
-    width = 550
-    for planet in maps:
-        mapdb = {"sorc":Sorc,"infe":Infe,"lhun":Lhun,"ayth":Ayth,"chto":Chto}.get(planet)
-        rows = mapdb.query.filter(mapdb.map_y.between(0, 529)).all()
-        for line in rows:
-            index = 0
-            row = int(line.map_y)*width
-            for char in line.map_rivi:
-                if char in [" ","#","V","^"]:
-                    maps[planet][row+index]=1
-                index+=1
+            rows = Owline.query.filter(Owline.map_y.between(228, 997)).all()
+            for line in rows:
+                index = 0
+                row = int(line.map_y-228)*width
+                for char in line.map_rivi[:300]:
+                        if char in [" ","#","V","^"]:
 
+                            maps['ow'][row+index]=1
+
+                        index+=1
+        except Exception as e:
+            print("error creating map",e)
                     
 def walk_path(start,end,planet):
     global maps
-    start=(start[0]-1,start[1])
-    end = (end[0]-1,end[1])
+    
+    offset_x = -300 if planet == 'aegi' else -1
+    offset_y = -228 if planet == 'aegi' else 0
+
+    start=(start[0]+offset_x,start[1]+offset_y)
+    end = (end[0]+offset_x,end[1]+offset_y)
+
     neighbours = {(1,1):'se',(-1,-1):'nw',(1,-1):'ne',(-1,1):'sw',(0, 1):'s', (0, -1):'n', (1, 0):'e', (-1, 0):'w'}
     open_set = []
     heapq.heappush(open_set,(0,start))
@@ -52,4 +72,7 @@ def walk_path(start,end,planet):
             except Exception:
                 continue
 
-#print(walk_path((30,30),(60,10),"lhun"))
+
+if 'ow' not in maps:
+    load()
+

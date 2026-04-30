@@ -1,6 +1,8 @@
 walk_to_planet= "lhun"    
 walk_to_xy = (410,245)
 walk_to_xy = (248,446)
+walk_to_planet= "aegi"
+walk_to_xy = (947,332) 
 print(walk_to_xy)
 
 # Default keybindings provided by the client
@@ -69,6 +71,8 @@ key_binds={
 }, 3931898241: {  'Numpad6': ['Out','out'],
 }, 463730410:  {  'Numpad6': ['Backroom','backroom'],
 }, 2734606472: {  'Numpad4': ['Bar','bar'],
+}, 2112035669: {  'Numpad6': ['Shadow','shadow'],
+}, 998558371:  {  'Numpad4': ['Out','out'],
                 
 }
 }

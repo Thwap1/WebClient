@@ -8,7 +8,7 @@ import logging
 import alias
 import orjson
 import mapper
-import astar
+
 from common import FORMAT
 from extensions import db
 from mapper import mazes
@@ -262,6 +262,7 @@ async def process_session(sid,reader,writer):
             await parse_command(sid,result,container)    
         output += container["og"].decode(FORMAT, errors='ignore')
 
+import astar
 async def parse_command(sid,initial_commands, data ={}):
     try:
         seen = set()
