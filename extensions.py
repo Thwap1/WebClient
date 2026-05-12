@@ -20,7 +20,8 @@ class GMCP:
         modules = [
             "Room.Info 1",
             "Party 1",
-            "Party.Info 1"
+            "Party.Info 1",
+            "Char.Status"
         ]
          # Tell the server which GMCP modules want to receive
         writer.write(

@@ -123,6 +123,10 @@ def match_color_start(container):
                     else:
                         i=0            
             if (match:= monster_search(container["text_data"][i:])):
+
+                if match[-1] == "*":
+                    container["og"] = (COLORS['bright_green'] +  container["text_data"] + COLORS['reset']+"\n").encode(FORMAT)
+                    return match[:-1]
                 container["og"] = (COLORS['bright_blue'] +  container["text_data"] + COLORS['reset']+"\n").encode(FORMAT)
                 return match
     except Exception as e:

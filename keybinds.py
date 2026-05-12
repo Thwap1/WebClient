@@ -1,21 +1,6 @@
-walk_to_planet= "lhun"    
-walk_to_xy = (248,446)
-walk_to_xy = (410,245)
-walk_to_xy = (20,25)
-
-walk_to_planet= "aegi"
-walk_to_xy = (947,332) 
-walk_to_xy = (850,633) #redwind
-walk_to_xy = (758,631) 
-walk_to_xy = (703,698) 
-walk_to_xy = (802,690) 
-walk_to_xy = (526,753) #w
-walk_to_xy = (898,750) #refugee
-walk_to_xy = (459,703) #w
- 
-print(walk_to_xy)
-
+from common import iris
 # Default keybindings provided by the client
+
 CtrlKeyDownActions = {
     "Numpad1": ["DAE sw"],"Numpad2": ["DAE s"],"Numpad3": ["DAE se"],"Numpad4": ["DAE w"],"Numpad5": ["look"],
     "Numpad6": ["DAE e"],"Numpad7": ["DAE nw"],"Numpad8": ["DAE n"],"Numpad9": ["DAE ne"]}    
@@ -26,8 +11,10 @@ AltKeyDownActions = {
 
 KeyDownActions = {
     "Numpad1": ["sw",],"Numpad2": ["s"],"Numpad3": ["se"],"Numpad4": ["w"],"Numpad5": ["look"],
-    "Numpad6": ["e"],"Numpad7": ["nw"],"Numpad8": ["n"],"Numpad9": ["ne"],"NumpadAdd": ["mome_","temu","x all"],"NumpadSubtract": ["DA_WAE"],
-    "NumpadDivide":["DA_OUT"]}
+    "Numpad6": ["e"],"Numpad7": ["nw"],"Numpad8": ["n"],"Numpad9": ["ne"],"NumpadAdd": ["mome_"],"NumpadSubtract": ["DA_WAE"],
+    "NumpadDivide":["DA_OUT"],"Backquote":[lambda: str(next(iris))]}
+
+
 
 #
 # Keybindings here override defaults and are applied per room-info ID:
@@ -40,7 +27,7 @@ key_binds={
 }, 4181828127: {  'F4':["Sc","s","4 w","4 s","se","5 s","e"],
                   'F6':["Shanty","s","4 w","3 n","2 w","s","3 w","2 sw","w","sw","4 w","nw","3 w","nw","5 w","3 nw","3 n","6 nw","12 w","path","town","gate"],
                   'F7':["Sewer","s","2 w","2 n","w","2 d"],
-                  'F8':["Rift","3 s","2 e","n","advance","store","3 s","e","2 s","2 w"],            
+                  'F8':["Rift","3 s","2 e","n","advance","3 s","e","2 s","2 w"],            
 }, 573688540:  {  'F4':["Sc","4 e","sw","7 w","3 s","e"],
                   'F7':["Bank","2 e","2 n","w","2 n","5 w","sell noeq","e","2 n","2 w","sell noeq","3 e","2 n","dep"],
                   'F8':["inn","2 e","2 n","w","n","6 w","n","w","n","w","u"],
@@ -83,6 +70,16 @@ key_binds={
 }, 2734606472: {  'Numpad4': ['Bar','bar'],
 }, 2112035669: {  'Numpad6': ['Shadow','shadow'],
 }, 998558371:  {  'Numpad4': ['Out','out'],
+}, 2103162264:  {  'Numpad6': ['Path','path'],
+}, 2651769782:  {  'Numpad6': ['Bush','bush'],
+}, 3371662246:  {  'Numpad4': ['Bush','search rock','bush'],
+}, 1119980:     {  'Numpad7': ['Bush','search rock','search rune of doom','nw'],
+}, 3606572302:     {  'Numpad6': ['Carpet','pull carpet','hatch'],
+}, 4120816934:     {  'Numpad4': ['Wall','wall'],
+}, 2510568476:     {  'Numpad4': ['w','u'],
+}, 2032988495:     {  'Numpad2': ['Out','out'],
+}, 649034564:     {  'Numpad6': ['climb','climb down'],
+}, 2505014778:     {  'Numpad4': ['u','u'],
                 
 }
 }

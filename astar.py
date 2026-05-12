@@ -15,7 +15,7 @@ def load():
                     index = 0
                     row = int(line.map_y)*width
                     for char in line.map_rivi:
-                        if char in ['#',"V","c"," ","^","~","R"]:
+                        if char in ['#',"V","c"," ","^"]:
                             maps[planet][row+index]=1
                         index+=1
             width = 1500
@@ -29,6 +29,7 @@ def load():
                 row = int(line.map_y)*width
                 
                 for c in line.map_rivi:
+                    
                     
                     if c in {'#',"V","c"," ","^","~","R"}:
                         
@@ -49,8 +50,9 @@ def walk_path(start,end,planet):
     
     
     p_width = 1500 if planet == 'aegi' else 550
-    start=(start[0],start[1])
-    end = (end[0],end[1])
+    offset_x = 0 if planet == 'aegi' else 1
+    start=(start[0]-offset_x,start[1])
+    end = (end[0]-offset_x,end[1])
     print(start,end,p_width)
     neighbours = {(1,1):'se',(-1,-1):'nw',(1,-1):'ne',(-1,1):'sw',(0, 1):'s', (0, -1):'n', (1, 0):'e', (-1, 0):'w'}
     open_set = []

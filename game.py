@@ -10,6 +10,8 @@ import orjson
 import mapper
 
 from common import FORMAT
+import common
+
 from extensions import db
 from mapper import mazes
 import keybinds
@@ -118,6 +120,8 @@ def fkey(data):
 
             elif fkey in keybinds.KeyDownActions:
                 for msg in keybinds.KeyDownActions[fkey]:
+                   if callable(msg):
+                       msg = msg()                       
                    asyncio.run_coroutine_threadsafe(send_msg(sid,msg),mud_loop)
 
 #
@@ -150,7 +154,7 @@ async def process_session(sid,reader,writer):
     mapper.setup_level(sid,"aegi",socketio)
         
     await GMCP.gmcp_order(writer)
-    
+    socketio.emit('output',{'output':mapper.change_state("TAL",sid)},to=sid)
     STATE_OUTPUT,STATE_IAC, STATE_IAC_2, STATE_GMCP, STATE_GMCP_PREV_WAS_IAC  = 0,1,2,3,4
     state = STATE_OUTPUT
     partystatus = {}
@@ -225,6 +229,9 @@ async def process_session(sid,reader,writer):
                                     
                                 except Exception as e:
                                     print(e)
+                            elif gmcp_buffer.startswith(b'\xc9Char.Status'):
+                                pass
+                                #print(gmcp_buffer)
                             state = STATE_OUTPUT
                             gmcp_buffer.clear()
                        elif b ==  0xFF:
@@ -336,6 +343,7 @@ async def send_msg(sid,msg):
             importlib.reload(alias)
             importlib.reload(keybinds)
             importlib.reload(trig)
+            
             importlib.reload(mapper.mazeslib)
             
             print("RELOAD")
@@ -346,14 +354,43 @@ async def send_msg(sid,msg):
         if len(msg) == 3 and msg == "ccc":
             astar.echo_test_location(mapper.mazes[sid]['x'],mapper.mazes[sid]['y'])
             return
-        if len(msg) == 3 and msg == "wlk":
+        if len(msg) == 3 and msg == "cyc":
+            socketio.emit('output',{'output':(str(common.cycle_points())+"\n")},to=sid)
+            return
+        if len(msg) == 3 and msg == "cyp":
+            socketio.emit('output',{'output':(str(common.cycle_planet())+"\n")},to=sid)
+            return
             
+        if msg[:3] == "wlk":    
+            x,y = mapper.mazes[sid]['x'],mapper.mazes[sid]['y']
+            tx,ty = common.goto_xy[:2]        
+            writer = mud_connections[sid]['writer']
+            if common.planet == "aqua":
+##
+                
             
-            path = astar.walk_path((mapper.mazes[sid]['x'],mapper.mazes[sid]['y']),(keybinds.walk_to_xy),keybinds.walk_to_planet)
+                                
+                path_dir = ""                        
+                dir1 = "w" if (x > tx) else "e"
+                dir2 = "n" if (y > ty) else "s"
+                dif1, dif2 = abs(tx-x), abs(ty-y)
+                rest = max(dif1,dif2)-(combo:=min(dif1,dif2))
+                while (combo:=combo-50) > -50:
+                    path_dir+= ("50" if combo > 0 else str(50+combo))+" "+dir2+dir1+";"
+                while (rest:=rest-50) > -50:
+                    path_dir+= ("50" if rest > 0 else str(50+rest))+" "+(dir1 if dif1 > dif2 else dir2)+";"       
+                path_dir2 = f"@party say x:{tx},y:{ty}\n@party say {path_dir[:-1]}\n"
+                path_dir2+=path_dir[:-1]+"\n"
+                writer.write(path_dir2.encode(FORMAT))
+                await writer.drain()
+##
+                return
+
+            path = astar.walk_path((mapper.mazes[sid]['x'],mapper.mazes[sid]['y']),common.goto_xy[:2],common.planet)
             print(path)
             if path:
                 for move in path:
-                    writer = mud_connections[sid]['writer']
+                    
                     writer.write((move+"\n").encode(FORMAT))
                 writer.write(("survey coordinates\n").encode(FORMAT))
                 await writer.drain()    
@@ -371,6 +408,8 @@ async def send_msg(sid,msg):
         
     except Exception as e:
         print("error while trying to send data to mud:",e)
+
+
 
 
 
